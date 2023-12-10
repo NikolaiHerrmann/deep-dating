@@ -6,56 +6,32 @@ import glob
 import os
 import cv2
 import torch.nn as nn
-from torchvision.models import resnet50
+from torchvision.models import resnet50, ResNet50_Weights
 import numpy as np
 from tqdm import tqdm
 from dating_eval_metrics import DatingEvalMetricWriter
 import matplotlib.pyplot as plt
 import random 
+from datasets import MPSDataset
 
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 
-DATA_PATH = "../MPS/Download"
-
-
-class MPSDataset(Dataset):
-
-    def __init__(self, root_dir):
-        self.img_list = glob.glob(os.path.join(root_dir, "*", "*"))
-
-    def __len__(self):
-        return len(self.img_list)
-
-    def __getitem__(self, idx):
-        img_path = self.img_list[idx]
-        date = float(img_path.split("/")[3])
-
-        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        crop_size = min(550, min(img.shape))
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        
-        transform = transforms.Compose([transforms.ToTensor(), 
-                                        transforms.RandomCrop(crop_size),
-                                        transforms.Resize(256, antialias=False),
-                                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-        img = transform(img)
-
-        return img, torch.tensor(date, dtype=torch.float32) 
+DATA_PATH = "../datasets/MPS/Download"
 
 
 class ResNet50(nn.Module):
 
     def __init__(self):
         super().__init__()
-        resnet = resnet50(pretrained=True)
+        resnet = resnet50(weights=ResNet50_Weights.DEFAULT)
         resnet.requires_grad_(False)
         resnet.fc = nn.Linear(in_features=resnet.fc.in_features, out_features=1)
         self.base_model = resnet
         self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=0.001)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.criterion = nn.MSELoss()
 
     def forward(self, x):
@@ -67,9 +43,10 @@ class ResNet50(nn.Module):
 
 dataset = MPSDataset(DATA_PATH)
 
-train_size = int(0.7 * len(dataset))
-val_size = int(0.2 * len(dataset))
+train_size = int(0.6 * len(dataset))
+val_size = int(0.3 * len(dataset))
 test_size = len(dataset) - (train_size + val_size)
+print(train_size, val_size, test_size)
 train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=8)
@@ -119,6 +96,7 @@ for epoch in range(num_epochs):
         
         loss.backward()
         model.optimizer.step()
+        model.scheduler.step()
 
     if epoch % 10:
         model.save(f"model_{epoch}.pt")
