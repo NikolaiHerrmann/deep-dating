@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
 from enum import Enum
+from dating_datasets import MPS, CLaMM
 
 
 class PatchMethod(Enum):
@@ -139,7 +140,8 @@ class PatchExtractor:
 
 
 if __name__ == "__main__":
+    files = MPS().img_names
     dp = PatchExtractor()
-    for i in range(10, 99):
-        patches = dp.extract_patches(f"../datasets/MPS/Download/1375/MPS1375_00{i}.ppm", PatchMethod.SLIDING_WINDOW_LINES)
+    for file in files:
+        patches = dp.extract_patches(file, PatchMethod.SLIDING_WINDOW_LINES)
         dp.save_plot(show=True)
