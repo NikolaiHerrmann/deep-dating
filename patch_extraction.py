@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
 from enum import Enum
-from dating_datasets import MPS, CLaMM
 
 
 class PatchMethod(Enum):
@@ -140,6 +139,8 @@ class PatchExtractor:
 
 
 if __name__ == "__main__":
+    from dating_datasets import MPS, CLaMM
+    
     files = MPS().img_names
     dp = PatchExtractor()
     for file in files:

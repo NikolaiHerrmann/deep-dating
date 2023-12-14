@@ -1,4 +1,5 @@
 
+import dating_util
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms
@@ -12,12 +13,7 @@ from tqdm import tqdm
 from dating_eval_metrics import DatingEvalMetricWriter
 import matplotlib.pyplot as plt
 import random 
-from datasets import MPSDataset
-
-SEED = 42
-random.seed(SEED)
-np.random.seed(SEED)
-torch.manual_seed(SEED)
+from dating_datasets import MPS, ScribbleLens, CLaMM, PytorchDatingDataset, SetType
 
 DATA_PATH = "../datasets/MPS/Download"
 
@@ -41,17 +37,11 @@ class ResNet50(nn.Module):
         torch.save(self.state_dict(), path)
 
 
-dataset = MPSDataset(DATA_PATH)
+mps = MPS()
 
-train_size = int(0.6 * len(dataset))
-val_size = int(0.3 * len(dataset))
-test_size = len(dataset) - (train_size + val_size)
-print(train_size, val_size, test_size)
-train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
-
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=8)
-val_loader = DataLoader(val_dataset, batch_size=16, shuffle=True, num_workers=8)
-test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)
+train_loader = DataLoader(PytorchDatingDataset(mps, SetType.TRAIN), batch_size=16, shuffle=True, num_workers=8)
+val_loader = DataLoader(PytorchDatingDataset(mps, SetType.VAL), batch_size=16, shuffle=True, num_workers=8)
+# test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)
 
 # images, labels = next(iter(train_loader))
 # # helper.imshow(images[0], normalize=False)

@@ -5,6 +5,12 @@ import glob
 import numpy as np
 import pandas as pd
 import dating_util
+import matplotlib.pyplot as plt
+import cv2
+from torchvision import transforms
+from multiprocessing import Pool
+from enum import Enum
+from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 from abc import ABC, abstractmethod
 
@@ -12,9 +18,37 @@ from abc import ABC, abstractmethod
 DATASETS_PATH = "../datasets"
 
 
+class SetType(Enum):
+    TEST = "test"
+    VAL = "val"
+    TRAIN = "train"
+
+
+class PytorchDatingDataset(Dataset):
+
+    def __init__(self, dating_dataset, set_type, img_size=256):
+        self.img_size = img_size
+        self.X, self.y = dating_dataset.read_split_header(set_type)
+        self.transform = transforms.Compose([#transforms.ToTensor(),
+                                             transforms.Resize(self.img_size, antialias=True),
+                                             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
+    def __getitem__(self, idx):
+        img_path, img_date = self.X[idx], self.y[idx]
+        
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        img = self.transform(img)
+
+        return img, img_date
+    
+    def __len__(self):
+        return self.X.shape[0]
+
+
 class DatingDataset(ABC):
 
-    def __init__(self, path, test_size=0.3, min_class_count=5, verbose=True):
+    def __init__(self, path, val_size=0.2, test_size=0.2, min_class_count=5, verbose=True):
         super().__init__()
 
         self.path = path
@@ -22,14 +56,17 @@ class DatingDataset(ABC):
         self.min_class_count = min_class_count
         self.verbose = verbose
         self.name = self.__class__.__name__
+        self.save_path = os.path.join(DATASETS_PATH, self.name + "_Set")
+        self.csv_path = os.path.join(self.save_path, "split.csv")
 
         self._read_header_file()
         self.img_names = np.asarray(self._extract_img_names())
-        self.img_dates = np.asarray(self._extract_img_dates(), dtype=np.int64)
+        self.img_dates = np.asarray(self._extract_img_dates(), dtype=np.float32)
 
         self._update_size()
         self._remove_low_count_samples()
-        self._split_data()
+        self._make_test_set()
+        self.make_val_set(val_size)
 
     def _verify_header_matches_imgs_found(self, imgs_found, imgs_listed):
         if self.verbose:
@@ -65,12 +102,60 @@ class DatingDataset(ABC):
                 dict_ = dict(zip(kick_out_dates, counts[low_count_idxs]))
                 self._print_message(f"Removed {num_kick_out_dates} sample(s). Hist: {dict_}")
 
-    def _split_data(self):
-        split = train_test_split(self.img_names, self.img_dates, test_size=self.test_size, 
-                                 shuffle=True, random_state=dating_util.SEED,
-                                 stratify=self.img_dates)
+    def _split_data(self, X, y, test_size):
+        return train_test_split(X, y, test_size=test_size, shuffle=True, random_state=dating_util.SEED, stratify=y)
 
-        self.X_train, self.X_test, self.y_train, self.y_test = split
+    def _make_test_set(self):
+        self.X_train_org, self.X_test, self.y_train_org, self.y_test = self._split_data(self.img_names, self.img_dates, self.test_size)
+
+    def make_val_set(self, val_size):
+        self.X_train, self.X_val, self.y_train, self.y_val = self._split_data(self.X_train_org, self.y_train_org, val_size)
+
+    def get_data(self, set_type):
+        if set_type == SetType.TEST:
+            return self.X_test, self.y_test
+        elif set_type == SetType.VAL:
+            return self.X_val, self.y_val
+        elif set_type == SetType.TRAIN:
+            return self.X_train, self.y_train
+        else:
+            raise Exception("Unknown dataset type!")
+        
+    def process_img(self, arg):
+        img_path, img_date = arg
+        imgs = self.process_func(img_path)
+        old_img_name = os.path.basename(img_path).split(".")[0]
+        names = []
+        for i, img in enumerate(imgs):
+            new_image_name = old_img_name + f"__{int(img_date)}_p{i}.ppm"
+            file_name = os.path.join(self.save_path, new_image_name)
+            plt.imsave(file_name, img, cmap="gray")
+            names.append((file_name, img_date))
+        return names
+        
+    def process_files(self, process_func, set_type):
+        self.process_func = process_func
+        os.makedirs(self.save_path, exist_ok=True)
+
+        with Pool() as pool:
+            processed_imgs = pool.map(self.process_img, zip(*self.get_data(set_type)))
+
+        concat = []
+        for x in processed_imgs:
+            concat += x
+        processed_imgs = np.array(concat)
+        file_names, dates = processed_imgs[:, 0], processed_imgs[:, 1]
+
+        df = pd.DataFrame({"name": file_names, "date": dates, "set": [set_type.value] * len(file_names)})
+        df.to_csv(self.csv_path, mode="a", index=False, header=False)
+
+    def read_split_header(self, set_type):
+        df = pd.read_csv(self.csv_path, header=None)
+        df.columns = ["name", "date", "set"]
+        df = df[df["set"] == set_type.value]
+        X = df["name"].to_numpy()
+        y = df["date"].to_numpy()
+        return X, y
 
     def _update_size(self):
         self.size = len(self.img_names)
@@ -83,6 +168,8 @@ class DatingDataset(ABC):
         return self.size
 
     def __str__(self):
+        if self.verbose:
+            self._print_message(f"Train: {len(self.X_train_org)}, Test: {len(self.X_test)}")
         return f"{self.name}: {self.size} images"
 
 
@@ -124,7 +211,7 @@ class CLaMM(DatingDataset):
                             15: (1576, 1600)}
         self.class_range_mean = {}
         for key, val in self.class_range.items():
-            self.class_range_mean[key] = np.mean(val)
+            self.class_range_mean[key] = int(np.mean(val))
         super().__init__(path)
 
     def _read_header_file(self):
@@ -235,5 +322,17 @@ def load_all_dating_datasets():
 
 
 if __name__ == "__main__":
-    for dataset in load_all_dating_datasets():
-        print(dataset)
+    from patch_extraction import PatchExtractor, PatchMethod
+
+    # for dataset in load_all_dating_datasets():
+    #     print(dataset)
+
+    mps = MPS()
+
+    dp = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES)
+    mps.process_files(dp.extract_patches, SetType.VAL)
+
+    pytorch_dataset = PytorchDatingDataset(mps, SetType.VAL)
+    print(pytorch_dataset.X.shape, pytorch_dataset.y.shape)
+    print(pytorch_dataset.X)
+
