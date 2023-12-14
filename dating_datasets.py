@@ -15,9 +15,6 @@ from sklearn.model_selection import train_test_split
 from abc import ABC, abstractmethod
 
 
-DATASETS_PATH = "../datasets"
-
-
 class SetType(Enum):
     TEST = "test"
     VAL = "val"
@@ -27,9 +24,9 @@ class SetType(Enum):
 class PytorchDatingDataset(Dataset):
 
     def __init__(self, dating_dataset, set_type, img_size=256):
-        self.img_size = img_size
         self.X, self.y = dating_dataset.read_split_header(set_type)
-        self.transform = transforms.Compose([#transforms.ToTensor(),
+        self.img_size = img_size
+        self.transform = transforms.Compose([transforms.ToTensor(),
                                              transforms.Resize(self.img_size, antialias=True),
                                              transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
 
@@ -56,7 +53,7 @@ class DatingDataset(ABC):
         self.min_class_count = min_class_count
         self.verbose = verbose
         self.name = self.__class__.__name__
-        self.save_path = os.path.join(DATASETS_PATH, self.name + "_Set")
+        self.save_path = os.path.join(dating_util.DATASETS_PATH, self.name + "_Set")
         self.csv_path = os.path.join(self.save_path, "split.csv")
 
         self._read_header_file()
@@ -154,7 +151,7 @@ class DatingDataset(ABC):
         df.columns = ["name", "date", "set"]
         df = df[df["set"] == set_type.value]
         X = df["name"].to_numpy()
-        y = df["date"].to_numpy()
+        y = df["date"].to_numpy().astype(np.float32)
         return X, y
 
     def _update_size(self):
@@ -175,7 +172,7 @@ class DatingDataset(ABC):
 
 class MPS(DatingDataset):
 
-    def __init__(self, path=os.path.join(DATASETS_PATH, "MPS", "Download")):
+    def __init__(self, path=os.path.join(dating_util.DATASETS_PATH, "MPS", "Download")):
         super().__init__(path)
 
     def _read_header_file(self):
@@ -193,7 +190,7 @@ class MPS(DatingDataset):
 
 class CLaMM(DatingDataset):
 
-    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training")):
+    def __init__(self, path=os.path.join(dating_util.DATASETS_PATH, "ICDAR2017_CLaMM_Training")):
         self.class_range = {1: (0, 1000),
                             2: (1001, 1100),
                             3: (1101, 1200),
@@ -239,7 +236,7 @@ class ScribbleLens(DatingDataset):
         super().__init__(path)
 
     def _read_header_file(self):
-        path = os.path.join(DATASETS_PATH, self.path_header, "nl.writers.scribes.v2.txt")
+        path = os.path.join(dating_util.DATASETS_PATH, self.path_header, "nl.writers.scribes.v2.txt")
         self.header_df = pd.read_csv(path, delimiter=r"\s+", skiprows=10, header=None)
         self.header_df = self.header_df.dropna()
         self.header_df.columns = ["writer-name", "ID", "directory", "year",
@@ -286,13 +283,13 @@ class ScribbleLens(DatingDataset):
         elif "roggeveen" in writer_name:
             dir_nums = self._parse_roggeveen(img_dir.split("/")[-1])
         else:
-            img_dir_path = os.path.join(DATASETS_PATH, self.path, img_dir, "**", "*.j*")
+            img_dir_path = os.path.join(dating_util.DATASETS_PATH, self.path, img_dir, "**", "*.j*")
             ls = glob.glob(img_dir_path, recursive=True)
             return ls
 
         for num in dir_nums:
             path = "scribblelens.corpus.v1/nl/unsupervised/" + special_dirs[0] + "/" + num
-            imgs_listed = glob.glob(os.path.join(DATASETS_PATH, self.path, path, "*"))
+            imgs_listed = glob.glob(os.path.join(dating_util.DATASETS_PATH, self.path, path, "*"))
             imgs_in_dir += imgs_listed
         
         return imgs_in_dir
@@ -302,7 +299,7 @@ class ScribbleLens(DatingDataset):
         self.date_ls = []
 
         # use *.j* as files are both .jpg and .jpeg
-        imgs_found = glob.glob(os.path.join(DATASETS_PATH, self.path, "**", "*.j*"), recursive=True)
+        imgs_found = glob.glob(os.path.join(dating_util.DATASETS_PATH, self.path, "**", "*.j*"), recursive=True)
 
         for img_dir, date, writer_name in zip(self.header_df["directory"], self.header_df["year"], self.header_df["writer-name"]):
             imgs_in_dir = self._parse_dir(img_dir, writer_name)
@@ -322,7 +319,7 @@ def load_all_dating_datasets():
 
 
 if __name__ == "__main__":
-    from patch_extraction import PatchExtractor, PatchMethod
+    from dating_patch_extraction import PatchExtractor, PatchMethod
 
     # for dataset in load_all_dating_datasets():
     #     print(dataset)

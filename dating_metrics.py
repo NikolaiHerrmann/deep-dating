@@ -82,9 +82,3 @@ class DatingEvalMetricWriter:
         self.writer.add_scalar(f"{self.state} MSE", mse, epoch)
         for cs_val, alpha in zip(cs_list, self.alphas):
             self.writer.add_scalar(f"{self.state} CS (alpha={alpha})", cs_val, epoch)
-
-
-
-
-# if __name__ == "__main__":
-#     DatingEvalMetricWriter.plot("runs/Dec06_11-04-06_p14s/epoch_log_12_6_11_4_6.csv")

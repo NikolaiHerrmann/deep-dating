@@ -1,6 +1,8 @@
 
+import os
 import cv2
 import numpy as np
+import dating_util
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
@@ -39,14 +41,14 @@ class PatchExtractor:
             func()
         return self.patch_ls
     
-    def save_plot(self, title=None, show=False):
+    def save_plot(self, title=None, dir_=dating_util.FIGURE_PATH, show=False):
         if not self.plot:
             print("No plot! Plotting was not set during initialization!")
             return
         if not title:
             title = str(self.method)
-        plt.savefig(title + ".png", dpi=300)
-        plt.savefig(title + ".pdf")
+        plt.savefig(os.path.join(dir_, title + ".png"), dpi=300)
+        plt.savefig(os.path.join(dir_, title + ".pdf"))
         if show:
             plt.show()
 
