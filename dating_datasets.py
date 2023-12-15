@@ -349,7 +349,7 @@ if __name__ == "__main__":
     dp = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES)
     mps.process_files(dp.extract_patches, SetType.VAL)
 
-    pytorch_dataset = PytorchDatingDataset(mps, SetType.VAL)
+    pytorch_dataset = DatingDataLoader.PytorchDatingDataset(mps, SetType.VAL)
     print(pytorch_dataset.X.shape, pytorch_dataset.y.shape)
     print(pytorch_dataset.X)
 
