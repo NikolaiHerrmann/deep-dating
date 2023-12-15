@@ -10,7 +10,7 @@ import cv2
 from torchvision import transforms
 from multiprocessing import Pool
 from enum import Enum
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from abc import ABC, abstractmethod
 
@@ -21,26 +21,46 @@ class SetType(Enum):
     TRAIN = "train"
 
 
-class PytorchDatingDataset(Dataset):
+class DatingDataLoader(DataLoader):
 
-    def __init__(self, dating_dataset, set_type, img_size=256):
-        self.X, self.y = dating_dataset.read_split_header(set_type)
-        self.img_size = img_size
-        self.transform = transforms.Compose([transforms.ToTensor(),
-                                             transforms.Resize(self.img_size, antialias=True),
-                                             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-
-    def __getitem__(self, idx):
-        img_path, img_date = self.X[idx], self.y[idx]
+    def __init__(self, dating_dataset, set_type, model, batch_size=16, shuffle=True, num_workers=8):
+        self.__batch_size = batch_size
+        super().__init__(self.PytorchDatingDataset(dating_dataset, set_type, model.input_size), 
+                         batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        img = self.transform(img)
+    def test_loading(self):
+        images, labels = next(iter(self))
+        num_cells = int(np.ceil(np.sqrt(self.__batch_size)))
+        fig, axs = plt.subplots(num_cells, num_cells)
+        
+        for i in range(self.__batch_size):
+            a = axs[i % num_cells, i // num_cells]
+            a.imshow(images[i][0], cmap="gray")
+            a.set_title(f"Date: {labels[i]}")
 
-        return img, img_date
-    
-    def __len__(self):
-        return self.X.shape[0]
+        fig.tight_layout()
+        plt.show()
+        exit()
+
+    class PytorchDatingDataset(Dataset):
+
+        def __init__(self, dating_dataset, set_type, img_size):
+            self.X, self.y = dating_dataset.read_split_header(set_type)
+            self.transform = transforms.Compose([transforms.ToTensor(),
+                                                 transforms.Resize(img_size, antialias=True),
+                                                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
+        def __getitem__(self, idx):
+            img_path, img_date = self.X[idx], self.y[idx]
+            
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+            img = self.transform(img)
+
+            return img, img_date
+        
+        def __len__(self):
+            return self.X.shape[0]
 
 
 class DatingDataset(ABC):

@@ -146,5 +146,5 @@ if __name__ == "__main__":
     files = MPS().img_names
     dp = PatchExtractor()
     for file in files:
-        patches = dp.extract_patches(file, PatchMethod.SLIDING_WINDOW_LINES)
+        patches = dp.extract_patches(file, PatchMethod.RANDOM_LINES)
         dp.save_plot(show=True)

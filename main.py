@@ -1,37 +1,27 @@
 
 import dating_util
 import torch
-from torch.utils.data import DataLoader
 import numpy as np
 from tqdm import tqdm
-from dating_metrics import DatingEvalMetricWriter
-import matplotlib.pyplot as plt
-from dating_datasets import MPS, ScribbleLens, CLaMM, PytorchDatingDataset, SetType
-from dating_networks import ResNet50
-
-DATA_PATH = "../datasets/MPS/Download"
+from dating_metrics import DatingMetricWriter
+from dating_datasets import MPS, ScribbleLens, CLaMM, DatingDataLoader, SetType
+from dating_networks import DatingCNN
 
 
+model = DatingCNN()
 mps = MPS()
 
-train_loader = DataLoader(PytorchDatingDataset(mps, SetType.VAL), batch_size=16, shuffle=True, num_workers=8)
-val_loader = DataLoader(PytorchDatingDataset(mps, SetType.VAL), batch_size=16, shuffle=True, num_workers=8)
-# test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=8)
+train_loader = DatingDataLoader(mps, SetType.VAL, model)
+val_loader = DatingDataLoader(mps, SetType.VAL, model)
 
-# images, labels = next(iter(train_loader))
-# # helper.imshow(images[0], normalize=False)
-# print(labels)
-# plt.imshow(images[0][0], cmap="gray")
-# plt.show()
-# exit()
+#train_loader.test_loading()
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-model = ResNet50()
 
 model.to(device)
 num_epochs = 100
 
-metric_writer = DatingEvalMetricWriter()
+metric_writer = DatingMetricWriter()
 
 for epoch in range(num_epochs):
 
@@ -56,17 +46,22 @@ for epoch in range(num_epochs):
         loss = model.criterion(outputs, labels)
 
         train_epoch_loss.append(loss.item())
-        train_epoch_labels += labels.T.tolist()[0]
-        train_epoch_preds += outputs.T.tolist()[0]
+        train_epoch_labels.append(labels.flatten())
+        train_epoch_preds.append(outputs.flatten())
+        # print(labels.flatten())
+        # exit()
+        # train_epoch_labels += labels.T.tolist()[0]
+        # train_epoch_preds += outputs.T.tolist()[0]
         
         loss.backward()
         model.optimizer.step()
-        model.scheduler.step()
+        #model.scheduler.step()
 
     if epoch % 10:
         model.save(f"model_{epoch}.pt")
 
-    metric_writer.epoch(train_epoch_loss, train_epoch_labels, train_epoch_preds, epoch)
+    
+    metric_writer.epoch(train_epoch_loss, np.concatenate(train_epoch_labels), np.concatenate(train_epoch_preds), epoch)
 
     model.eval()
     metric_writer.eval()

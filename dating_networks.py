@@ -2,18 +2,24 @@
 import dating_util
 import torch
 import torch.nn as nn
-from torchvision.models import resnet50, ResNet50_Weights
+import timm
 
-class ResNet50(nn.Module):
 
-    def __init__(self):
+class DatingCNN(nn.Module):
+
+    IMAGE_NET_MODELS = {"inception_resnet_v2": 299, 
+                        "resnet50": 256}
+
+    def __init__(self, model_name="inception_resnet_v2", pretrained=True, input_size=None):
         super().__init__()
-        resnet = resnet50(weights=ResNet50_Weights.DEFAULT)
-        resnet.requires_grad_(False)
-        resnet.fc = nn.Linear(in_features=resnet.fc.in_features, out_features=1)
-        self.base_model = resnet
+
+        assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
+        self.model_name = model_name
+        self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=1)
+        self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
+
         self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=0.001)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
+        #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.criterion = nn.MSELoss()
 
     def forward(self, x):
@@ -21,3 +27,11 @@ class ResNet50(nn.Module):
 
     def save(self, path):
         torch.save(self.state_dict(), path)
+
+
+class DatingTrainer:
+
+    def __init__(self, num_epochs=100, verbose=True):
+        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        if self.verbose:
+            print(f"Training on: {self.device}")

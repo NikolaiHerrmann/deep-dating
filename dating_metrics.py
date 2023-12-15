@@ -4,10 +4,9 @@ import os
 import numpy as np
 import pandas as pd
 import datetime
-import matplotlib.pyplot as plt
 
 
-class DatingEvalMetricWriter:
+class DatingMetricWriter:
 
     def __init__(self, alphas=[0, 25], test_mode=False, path=None):
         self.alphas = alphas
