@@ -85,7 +85,7 @@ class PatchExtractor:
 
         return img[y:y+size, x:x+size], x, y
 
-    def _calc_num_lines_in_img(self, extra_show=True):
+    def _calc_num_lines_in_img(self, extra_show=False):
         hist = (1 - self.img_bin).sum(axis=1)
         thresh = np.mean(hist)
 
@@ -95,11 +95,13 @@ class PatchExtractor:
         if self.calc_pixel_overlap:
             self.num_pixel_overlap = int(np.mean(np.diff(self.peaks)))
 
-        # if extra_show:
-        #     plt.plot(hist)
-        #     plt.axhline(thresh, color="red", alpha=0.5)
-        #     #plt.plot(self.peaks, hist[self.peaks], "x", "orange")
-        #     plt.show()
+        if extra_show:
+            print("Debug, destroying plot!")
+            plt.clf()
+            plt.plot(hist)
+            plt.axhline(thresh, color="red", alpha=0.5)
+            plt.plot(self.peaks, hist[self.peaks], "x", "orange")
+            plt.show()
 
         if self.plot:
             for x in self.peaks:
