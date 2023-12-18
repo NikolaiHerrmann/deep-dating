@@ -1,5 +1,4 @@
 
-import os
 import cv2
 import numpy as np
 import dating_util
@@ -49,16 +48,13 @@ class PatchExtractor:
 
         return self.patch_ls
     
-    def save_plot(self, title=None, dir_=dating_util.FIGURE_PATH, show=False):
+    def save_plot(self, title=None, show=False):
         if not self.plot:
             print("No plot possible! Plotting was not set during initialization!")
             return
         if not title:
             title = str(self.method)
-        plt.savefig(os.path.join(dir_, title + ".png"), dpi=300)
-        plt.savefig(os.path.join(dir_, title + ".pdf"))
-        if show:
-            plt.show()
+        dating_util.save_figure(title, show=show)
 
     def _read_img(self, path):
         self.img = cv2.imread(path)
