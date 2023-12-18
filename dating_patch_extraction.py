@@ -3,6 +3,7 @@ import os
 import cv2
 import numpy as np
 import dating_util
+from dating_preprocessing import binarize_img
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
@@ -17,33 +18,40 @@ class PatchMethod(Enum):
 
 class PatchExtractor:
 
-    def __init__(self, method=PatchMethod.RANDOM, num_lines_per_patch=5, 
-                 line_peak_distance=50, num_patches=20, plot=True, patch_size=256):
+    def __init__(self, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, 
+                 line_peak_distance=50, num_random_patches=20, plot=True, 
+                 patch_size_for_random=256, calc_pixel_overlap=True,
+                 rm_white_pixel_ratio=0.98):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
-        self.num_patches = num_patches
+        self.num_random_patches = num_random_patches
         self.plot = plot
-        self.patch_size = patch_size
-        self.method_funcs = {PatchMethod.RANDOM: self._extract_random_patches,
-                             PatchMethod.RANDOM_LINES: self._extract_random_patches_based_on_lines,
-                             PatchMethod.SLIDING_WINDOW_LINES: self._extract_window_patches_based_on_lines}
+        self.patch_size = patch_size_for_random
+        self.calc_pixel_overlap = calc_pixel_overlap
+        self.rm_white_pixel_ratio = rm_white_pixel_ratio
+        self.num_pixel_overlap = 0
+        self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
+                             PatchMethod.RANDOM_LINES: self._extract_random_lines,
+                             PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines}
     
     def extract_patches(self, img_path, method=None):
         self._read_img(img_path)
         if method:
             self.method = method
+
         self.patch_ls = []
         func = self.method_funcs.get(self.method)
         if not func:
-            print("Unknown method!")
+            print("Unknown method! Returning empty patch list.")
         else:
             func()
+
         return self.patch_ls
     
     def save_plot(self, title=None, dir_=dating_util.FIGURE_PATH, show=False):
         if not self.plot:
-            print("No plot! Plotting was not set during initialization!")
+            print("No plot possible! Plotting was not set during initialization!")
             return
         if not title:
             title = str(self.method)
@@ -53,8 +61,12 @@ class PatchExtractor:
             plt.show()
 
     def _read_img(self, path):
-        img = cv2.imread(path)
-        self.img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        self.img = cv2.imread(path)
+        self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        self.height, self.width = self.img.shape
+
+        self.img_bin = binarize_img(self.img, show=False)
+
         if self.plot:
             plt.imshow(self.img, cmap="gray")
 
@@ -62,8 +74,8 @@ class PatchExtractor:
         min_dim = min(img.shape)
         if min_dim < size:
             print("Warning, image smaller than wanted size! Image size",
-                  img.shape, "but wanted", (size, size))
-            size = min_dim - 1
+                  img.shape, "but wanted", (size, size), "Returning same image.")
+            return img, 0, 0
 
         max_width = img.shape[1] - size
         max_height = img.shape[0] - size
@@ -73,78 +85,111 @@ class PatchExtractor:
 
         return img[y:y+size, x:x+size], x, y
 
-    def _calc_num_lines_in_img(self):
-        img_ones = 1 - (self.img / 255)
-
-        hist = img_ones.sum(axis=1)
+    def _calc_num_lines_in_img(self, extra_show=True):
+        hist = (1 - self.img_bin).sum(axis=1)
         thresh = np.mean(hist)
-        peaks, _ = find_peaks(hist, distance=self.line_peak_distance)
-        self.peaks = peaks[hist[peaks] > thresh]
-        self.num_lines = len(peaks)
+
+        self.peaks, _ = find_peaks(hist, distance=self.line_peak_distance)
+        self.peaks = self.peaks[hist[self.peaks] > thresh]
+        self.num_lines = len(self.peaks)
+        if self.calc_pixel_overlap:
+            self.num_pixel_overlap = int(np.mean(np.diff(self.peaks)))
+
+        # if extra_show:
+        #     plt.plot(hist)
+        #     plt.axhline(thresh, color="red", alpha=0.5)
+        #     #plt.plot(self.peaks, hist[self.peaks], "x", "orange")
+        #     plt.show()
 
         if self.plot:
-            for x in peaks:
-                plt.axhline(x, color="orangered", alpha=0.5)
+            for x in self.peaks:
+                plt.axhline(x, color="orangered", alpha=0.5, zorder=5)
 
     def _calc_patch_size_based_on_lines(self):
-        patch_size = int((self.img.shape[0] / self.num_lines) * self.num_lines_per_patch)
-        self.patch_size = min(patch_size, min(self.img.shape))
+        patch_size = int((self.height / self.num_lines) * self.num_lines_per_patch)
+        self.patch_size = min(patch_size, self.height, self.width)
 
-    def _draw_rect(self, x, y):
+    def _draw_rect(self, x, y, color="blue"):
         rect = plt_patches.Rectangle((x, y), self.patch_size, self.patch_size, 
-                                     linewidth=2, edgecolor="blue", facecolor="none")
+                                     linewidth=2, edgecolor=color, alpha=0.4, 
+                                     facecolor=color, linestyle="dotted")
         plt.gca().add_patch(rect)
 
-    def _extract_random_patches(self):
-        for _ in range(self.num_patches):
+    def _append_patch(self, patch, x, y):
+        bin_patch = self.img_bin[y:y+self.patch_size, x:x+self.patch_size]
+        white_pixel_count = np.count_nonzero(bin_patch)
+        if white_pixel_count / bin_patch.size > self.rm_white_pixel_ratio:
+            return
+
+        self.patch_ls.append(patch)
+
+        if self.plot:
+            self._draw_rect(x, y)
+
+    def _extract_random(self):
+        for _ in range(self.num_random_patches):
             patch, x, y = self._get_random_patch(self.img, self.patch_size)
-            self.patch_ls.append(patch)
-
-            if self.plot:
-                self._draw_rect(x, y)
+            self._append_patch(patch, x, y)
 
         if self.plot:
-            plt.title(f"{self.num_patches} Random Patches at Size: {(self.patch_size, self.patch_size)}")
+            plt.title(f"{self.num_random_patches} Random Patches at Size: {(self.patch_size, self.patch_size)}")
 
-    def _extract_random_patches_based_on_lines(self):
+    def _extract_random_lines(self):
         self._calc_num_lines_in_img()
         self._calc_patch_size_based_on_lines()
-        self._extract_random_patches()
+        self._extract_random()
         if self.plot:
-            plt.title(f"{self.num_patches} Random Patches (Approx {self.num_lines_per_patch} Lines within each Patch)")
+            plt.title(f"{self.num_random_patches} Random Patches (Approx {self.num_lines_per_patch} Lines within each Patch)")
 
-    def _extract_window_patches_based_on_lines(self):
+    def _calc_num_patches_fit_in_img(self, num_pixels):
+        pixels_can_cover = self.patch_size
+        pixels_covered = self.patch_size
+        patch_count = 1
+
+        while True:
+            pixels_can_cover -= self.num_pixel_overlap
+            pixels_can_cover += self.patch_size
+            if pixels_can_cover >= num_pixels:
+                break
+            patch_count += 1
+            pixels_covered = pixels_can_cover
+    
+        start_coor = int((num_pixels - pixels_covered) / 2)
+
+        return patch_count, start_coor
+
+    def _extract_sliding_window_lines(self):
         self._calc_num_lines_in_img()
         self._calc_patch_size_based_on_lines()
 
-        x_n = int(self.img.shape[1] / self.patch_size)
-        y_n = int(self.img.shape[0] / self.patch_size)
+        self.overlap_patch_size = self.patch_size - self.num_pixel_overlap
 
-        x_init = int((self.img.shape[1] % self.patch_size) / 2)
-        y_init = int((self.img.shape[0] % self.patch_size) / 2)
+        x_n, x_init = self._calc_num_patches_fit_in_img(self.width)
+        y_n, y_init = self._calc_num_patches_fit_in_img(self.height)
+
         x = x_init
         y = y_init
 
         for _ in range(y_n):
             for _ in range(x_n):
                 patch = self.img[y:y+self.patch_size, x:x+self.patch_size]
-                self.patch_ls.append(patch)
-                if self.plot:
-                    self._draw_rect(x, y)
+                self._append_patch(patch, x, y)
 
-                x += self.patch_size
+                x += self.overlap_patch_size
             x = x_init
-            y += self.patch_size
+            y += self.overlap_patch_size
 
         if self.plot:
             plt.title(f"Sliding Window Method (Approx {self.num_lines_per_patch} Lines within each Patch)")
 
 
 if __name__ == "__main__":
-    from dating_datasets import MPS, CLaMM
+    from dating_datasets import MPS, CLaMM, ScribbleLens
+    from tqdm import tqdm
     
     files = MPS().img_names
-    dp = PatchExtractor()
-    for file in files:
-        patches = dp.extract_patches(file, PatchMethod.RANDOM_LINES)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES)
+    for file in tqdm(files):
+        patches = dp.extract_patches(file)
         dp.save_plot(show=True)
+    
