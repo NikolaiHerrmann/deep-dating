@@ -1,5 +1,5 @@
 
-from deep_dating.datasets import MPS, ScribbleLens, CLaMM
+from deep_dating.datasets import MPS
 from deep_dating.networks import DatingCNN, DatingTrainer
 
 

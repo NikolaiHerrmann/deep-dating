@@ -1,21 +1,30 @@
 
+import os
 import torch
 from tqdm import tqdm
 from deep_dating.networks import EarlyStopper
-from deep_dating.metrics import DatingMetricWriter
+from deep_dating.metrics import MetricWriter
 from deep_dating.datasets import DatingDataLoader, SetType
-
+from deep_dating.util import get_date_as_str
 
 class DatingTrainer:
 
     def __init__(self, num_epochs=100, verbose=True):
+        self.save_path = "runs"
+        self._init_save_dir()
         self.num_epochs = num_epochs
         self.verbose = verbose
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         if self.verbose:
             print(f"Training on: {self.device}")
-        self.metric_writer = DatingMetricWriter()
+        
         self.early_stopper = EarlyStopper()
+
+    def _init_save_dir(self):
+        os.makedirs(self.save_path, exist_ok=True)
+        self.exp_path = os.path.join(self.save_path, get_date_as_str())
+        os.mkdir(self.exp_path)
+        self.metric_writer = MetricWriter(self.exp_path)
 
     def train(self, model, dataset):
         train_loader = DatingDataLoader(dataset, SetType.TRAIN, model)
@@ -43,7 +52,7 @@ class DatingTrainer:
                 loss.backward()
                 model.optimizer.step()
 
-            self.metric_writer.mark_epoch(epoch)
+            mean_train_loss = self.metric_writer.mark_epoch(epoch)
             model.eval()
             self.metric_writer.eval()
 
@@ -59,10 +68,12 @@ class DatingTrainer:
                     self.metric_writer.add_batch_outputs(loss.item(), labels.detach().numpy(), outputs.detach().numpy())
 
             mean_val_loss = self.metric_writer.mark_epoch(epoch)
+            print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")
 
             stop, save_model = self.early_stopper.stop(mean_val_loss)
             if save_model:
-                model.save(f"model_epoch_{epoch}.pt")
+                path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
+                model.save(path)
             if stop:
                 print("Stopping early!")
                 break

@@ -1,7 +1,7 @@
 
 import cv2
 import numpy as np
-from deep_dating import dating_util
+from deep_dating.util import dating_util
 from deep_dating.preprocessing import binarize_img
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
@@ -179,15 +179,4 @@ class PatchExtractor:
 
         if self.plot:
             plt.title(f"Sliding Window Method (Approx {self.num_lines_per_patch} Lines within each Patch)")
-
-
-if __name__ == "__main__":
-    from src.deep_dating.datasets.dating_dataloader import MPS, CLaMM, ScribbleLens
-    from tqdm import tqdm
-    
-    files = MPS().img_names
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES)
-    for file in tqdm(files):
-        patches = dp.extract_patches(file)
-        dp.save_plot(show=True)
     

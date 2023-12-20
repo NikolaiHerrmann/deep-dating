@@ -3,9 +3,11 @@ import os
 import random
 import numpy as np
 import torch
+import datetime
+import calendar
 import matplotlib.pyplot as plt
 
-FIGURE_PATH = "figs"
+FIGURE_PATH = "../figs"
 DATASETS_PATH = "../../datasets"
 SEED = 42
 
@@ -26,3 +28,8 @@ def save_figure(title, fig_dir=FIGURE_PATH, show=False):
 
     if show:
         plt.show()
+
+
+def get_date_as_str():
+    now = datetime.datetime.now()
+    return f"{calendar.month_abbr[now.month]}{now.day}-{now.hour}-{now.minute}-{now.second}"

@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from deep_dating import dating_util
+from deep_dating.util import dating_util
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 

@@ -5,7 +5,7 @@ import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from deep_dating import dating_util
+from deep_dating.util import dating_util
 from deep_dating.datasets import SetType
 from multiprocessing import Pool
 from sklearn.model_selection import train_test_split
