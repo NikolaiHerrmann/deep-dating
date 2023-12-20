@@ -48,11 +48,18 @@ class DatingMetricWriter:
         diff = np.abs(true - pred)
         return [(np.count_nonzero(diff <= a) / n) * 100 for a in self.alphas]
     
+    def _reset_stats(self):
+        self.epoch_losses = []
+        self.epoch_labels = []
+        self.epoch_preds = []
+    
     def train(self):
         self.state = "train"
+        self._reset_stats()
 
     def eval(self):
         self.state = "eval"
+        self._reset_stats()
 
     def write_to_file(self, row):
         df = pd.DataFrame([row])
@@ -63,15 +70,19 @@ class DatingMetricWriter:
         mae = self.mae(labels, preds)
         cs_list = self.cs(labels, preds)
         return mse, mae, cs_list
+    
+    def add_batch_outputs(self, losses, labels, preds):
+        self.epoch_losses.append(losses)
+        self.epoch_labels.append(labels)
+        self.epoch_preds.append(preds)
         
-    def epoch(self, epoch_losses, epoch_labels, epoch_preds, epoch):
-        if self.test_mode:
-            print("Warning in test mode!")
-            return 
+    def mark_epoch(self, epoch):
+        self.epoch_labels = np.concatenate(self.epoch_labels)
+        self.epoch_preds = np.concatenate(self.epoch_preds)
 
-        mean_running_loss = np.mean(epoch_losses)
-        std_running_loss = np.std(epoch_losses)
-        mse, mae, cs_list = self.calc_metrics(epoch_labels, epoch_preds)
+        mean_running_loss = np.mean(self.epoch_losses)
+        std_running_loss = np.std(self.epoch_losses)
+        mse, mae, cs_list = self.calc_metrics(self.epoch_labels, self.epoch_preds)
 
         row = [self.state, epoch, mean_running_loss, std_running_loss, mse, mae] + cs_list
         self.write_to_file(row)
@@ -81,3 +92,5 @@ class DatingMetricWriter:
         self.writer.add_scalar(f"{self.state} MSE", mse, epoch)
         for cs_val, alpha in zip(cs_list, self.alphas):
             self.writer.add_scalar(f"{self.state} CS (alpha={alpha})", cs_val, epoch)
+
+        return mean_running_loss

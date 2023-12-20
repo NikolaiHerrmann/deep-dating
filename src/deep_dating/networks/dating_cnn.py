@@ -1,5 +1,5 @@
 
-import dating_util
+from deep_dating import dating_util
 import torch
 import torch.nn as nn
 import timm
@@ -10,7 +10,7 @@ class DatingCNN(nn.Module):
     IMAGE_NET_MODELS = {"inception_resnet_v2": 299, 
                         "resnet50": 256}
 
-    def __init__(self, model_name="inception_resnet_v2", pretrained=True, input_size=None):
+    def __init__(self, model_name="resnet50", pretrained=True, input_size=None):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
@@ -27,11 +27,3 @@ class DatingCNN(nn.Module):
 
     def save(self, path):
         torch.save(self.state_dict(), path)
-
-
-class DatingTrainer:
-
-    def __init__(self, num_epochs=100, verbose=True):
-        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        if self.verbose:
-            print(f"Training on: {self.device}")

@@ -1,8 +1,8 @@
 
 import cv2
 import numpy as np
-import dating_util
-from dating_preprocessing import binarize_img
+from deep_dating import dating_util
+from deep_dating.preprocessing import binarize_img
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
@@ -182,7 +182,7 @@ class PatchExtractor:
 
 
 if __name__ == "__main__":
-    from dating_datasets import MPS, CLaMM, ScribbleLens
+    from src.deep_dating.datasets.dating_dataloader import MPS, CLaMM, ScribbleLens
     from tqdm import tqdm
     
     files = MPS().img_names

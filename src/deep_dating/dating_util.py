@@ -6,7 +6,7 @@ import torch
 import matplotlib.pyplot as plt
 
 FIGURE_PATH = "figs"
-DATASETS_PATH = "../datasets"
+DATASETS_PATH = "../../datasets"
 SEED = 42
 
 def set_seed():
