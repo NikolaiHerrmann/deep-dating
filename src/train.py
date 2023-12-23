@@ -1,10 +1,10 @@
 
-from deep_dating.datasets import MPS
+from deep_dating.datasets import DatasetName
+from deep_dating.preprocessing import Preprocessor
 from deep_dating.networks import DatingCNN, DatingTrainer
 
 
 if __name__ == "__main__":
     model = DatingCNN()
-    dataset = MPS()
     trainer = DatingTrainer()
-    trainer.train(model, dataset)
+    trainer.train(model, DatasetName.MPS)

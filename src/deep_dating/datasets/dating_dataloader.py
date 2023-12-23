@@ -2,16 +2,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from deep_dating.util import dating_util
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
+from deep_dating.preprocessing import Preprocessor
 
 
 class DatingDataLoader(DataLoader):
 
-    def __init__(self, dating_dataset, set_type, model, batch_size=16, shuffle=True, num_workers=8):
+    def __init__(self, dataset_name, set_type, model, batch_size=16, shuffle=True, num_workers=8):
         self.__batch_size = batch_size
-        super().__init__(self.PytorchDatingDataset(dating_dataset, set_type, model.input_size), 
+        super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model.input_size), 
                          batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
     def test_loading(self):
@@ -30,8 +30,8 @@ class DatingDataLoader(DataLoader):
 
     class PytorchDatingDataset(Dataset):
 
-        def __init__(self, dating_dataset, set_type, img_size):
-            self.X, self.y = dating_dataset.read_split_header(set_type)
+        def __init__(self, dataset_name, set_type, img_size):
+            self.X, self.y = Preprocessor(dataset_name).read_preprocessing_header(set_type)
             self.transform = transforms.Compose([transforms.ToTensor(),
                                                  transforms.Resize(img_size, antialias=True),
                                                  transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])

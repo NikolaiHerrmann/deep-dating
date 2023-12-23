@@ -10,7 +10,7 @@ class DatingCNN(nn.Module):
     IMAGE_NET_MODELS = {"inception_resnet_v2": 299, 
                         "resnet50": 256}
 
-    def __init__(self, model_name="inception_resnet_v2", pretrained=True, input_size=None):
+    def __init__(self, model_name="resnet50", pretrained=True, input_size=None):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"

@@ -1,2 +1,3 @@
-from .preprocessing import *
+from .binarize import *
 from .patch_extraction import *
+from .preprocessor import *
