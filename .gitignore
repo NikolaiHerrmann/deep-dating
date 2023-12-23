@@ -3,3 +3,4 @@ experimental/
 
 figs/
 runs/
+*.npy
