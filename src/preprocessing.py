@@ -33,6 +33,6 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # if args.test:
-    #     test_patch_extraction()
-    preprocess(MPS())
+    test_patch_extraction()
+    #preprocess(MPS())
 

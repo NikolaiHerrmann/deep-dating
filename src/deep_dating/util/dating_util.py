@@ -23,8 +23,8 @@ def set_seed():
 set_seed()
 
 def save_figure(title, fig_dir=FIGURE_PATH, show=False):
-    plt.savefig(os.path.join(fig_dir, title + ".png"), dpi=300)
-    plt.savefig(os.path.join(fig_dir, title + ".pdf"))
+    plt.savefig(os.path.join(fig_dir, title + ".png"), dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(fig_dir, title + ".pdf"), bbox_inches="tight")
 
     if show:
         plt.show()
