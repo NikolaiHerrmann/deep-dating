@@ -5,7 +5,7 @@ from tqdm import tqdm
 from deep_dating.networks import EarlyStopper
 from deep_dating.metrics import MetricWriter
 from deep_dating.datasets import DatingDataLoader, SetType
-from deep_dating.util import get_date_as_str
+from deep_dating.util import get_date_as_str, get_torch_device
 
 class DatingTrainer:
 
@@ -14,10 +14,7 @@ class DatingTrainer:
         self._init_save_dir()
         self.num_epochs = num_epochs
         self.verbose = verbose
-        self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        if self.verbose:
-            print(f"Training on: {self.device}")
-        
+        self.device = get_torch_device(verbose=verbose)
         self.early_stopper = EarlyStopper()
 
     def _init_save_dir(self):
@@ -38,8 +35,8 @@ class DatingTrainer:
             model.train()
             self.metric_writer.train()
 
-            for inputs, labels in tqdm(train_loader, disable = not self.verbose):
-                
+            for inputs, labels, paths in tqdm(train_loader, disable = not self.verbose):
+
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device).unsqueeze(1)
 
@@ -57,7 +54,7 @@ class DatingTrainer:
             self.metric_writer.eval()
 
             with torch.no_grad():
-                for inputs, labels in tqdm(val_loader):
+                for inputs, labels, paths in tqdm(val_loader, disable = not self.verbose):
 
                     inputs = inputs.to(self.device)
                     labels = labels.to(self.device).unsqueeze(1)

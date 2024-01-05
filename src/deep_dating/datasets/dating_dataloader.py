@@ -5,6 +5,7 @@ import cv2
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.preprocessing import Preprocessor
+from deep_dating.util import save_figure
 
 
 class DatingDataLoader(DataLoader):
@@ -25,8 +26,7 @@ class DatingDataLoader(DataLoader):
             a.set_title(f"Date: {labels[i]}")
 
         fig.tight_layout()
-        plt.show()
-        exit()
+        save_figure("example_batch", show=True)
 
     class PytorchDatingDataset(Dataset):
 
@@ -43,7 +43,7 @@ class DatingDataLoader(DataLoader):
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
             img = self.transform(img)
 
-            return img, img_date
+            return img, img_date, img_path
         
         def __len__(self):
             return self.X.shape[0]

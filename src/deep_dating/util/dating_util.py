@@ -22,10 +22,12 @@ def set_seed():
 
 set_seed()
 
-def save_figure(title, fig_dir=FIGURE_PATH, show=False):
-    plt.savefig(os.path.join(fig_dir, title + ".png"), dpi=300, bbox_inches="tight")
-    plt.savefig(os.path.join(fig_dir, title + ".pdf"), bbox_inches="tight")
 
+def save_figure(title, fig=None, fig_dir=FIGURE_PATH, show=False):
+    if not fig:
+        fig = plt.gcf()
+    fig.savefig(os.path.join(fig_dir, title + ".png"), dpi=300, bbox_inches="tight")
+    fig.savefig(os.path.join(fig_dir, title + ".pdf"), bbox_inches="tight")
     if show:
         plt.show()
 
@@ -33,3 +35,10 @@ def save_figure(title, fig_dir=FIGURE_PATH, show=False):
 def get_date_as_str():
     now = datetime.datetime.now()
     return f"{calendar.month_abbr[now.month]}{now.day}-{now.hour}-{now.minute}-{now.second}"
+
+
+def get_torch_device(verbose=False):
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    if verbose:
+        print(f"Running torch model on: {device}")
+    return device

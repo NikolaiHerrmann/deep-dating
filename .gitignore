@@ -4,3 +4,4 @@ experimental/
 figs/
 runs/
 *.npy
+*.pkl

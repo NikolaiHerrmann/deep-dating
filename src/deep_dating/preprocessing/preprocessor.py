@@ -24,6 +24,11 @@ class Preprocessor:
             plt.imsave(file_name, img, cmap="gray")
             names.append((file_name, img_date))
         return names
+    
+    @staticmethod
+    def get_base_img_name(path):
+        base_name = os.path.basename(path)
+        return base_name.split("_p")[0]
         
     def run(self, X, y, set_type, preprocessing_func):
         self.process_func = preprocessing_func
