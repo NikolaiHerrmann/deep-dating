@@ -62,7 +62,7 @@ class DatingTrainer:
                     outputs = model(inputs)
                     loss = model.criterion(outputs, labels)
 
-                    self.metric_writer.add_batch_outputs(loss.item(), labels.detach().numpy(), outputs.detach().numpy())
+                    self.metric_writer.add_batch_outputs(loss.item(), labels.cpu().detach().numpy(), outputs.cpu().detach().numpy())
 
             mean_val_loss = self.metric_writer.mark_epoch(epoch)
             print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")

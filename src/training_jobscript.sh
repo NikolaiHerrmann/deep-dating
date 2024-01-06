@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --time=12:00:00
+#SBATCH --time=8:00
 #SBATCH --cpus-per-task=8
 #SBATCH --output=job-%j.log
-#SBATCH --mem=24G
+#SBATCH --mem=12G
 #SBATCH --gpus-per-node=1
 #SBATCH --partition=gpu
 #SBATCH --job-name=deep_dating_cnn 
