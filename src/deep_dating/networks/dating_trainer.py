@@ -9,13 +9,13 @@ from deep_dating.util import get_date_as_str, get_torch_device
 
 class DatingTrainer:
 
-    def __init__(self, num_epochs=100, verbose=True):
+    def __init__(self, num_epochs=50, patience=10, verbose=True):
         self.save_path = "runs"
         self._init_save_dir()
         self.num_epochs = num_epochs
         self.verbose = verbose
-        self.device = get_torch_device(verbose=verbose)
-        self.early_stopper = EarlyStopper()
+        self.device = get_torch_device(verbose)
+        self.early_stopper = EarlyStopper(patience)
 
     def _init_save_dir(self):
         os.makedirs(self.save_path, exist_ok=True)

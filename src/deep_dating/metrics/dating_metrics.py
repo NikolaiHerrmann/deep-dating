@@ -17,10 +17,10 @@ class DatingMetrics:
         self.names = self.metrics.keys()
 
     def _mae(self):
-        return np.sum(np.abs(self.true - self.pred)) / self.n
+        return np.sum(self.abs_diff) / self.n
 
     def _mse(self):
-        return np.sum(np.square(self.true - self.pred)) / self.n
+        return np.sum(np.square(self.diff)) / self.n
 
     def _cs(self):
         alpha = self.alphas[self.alpha_counter]
@@ -28,13 +28,14 @@ class DatingMetrics:
         if self.alpha_counter == len(self.alphas):
             self.alpha_counter = 0
 
-        return (np.count_nonzero(self.diff <= alpha) / self.n) * 100
+        return (np.count_nonzero(self.abs_diff <= alpha) / self.n) * 100
 
     def calc(self, true, pred):
         self.true = true
         self.pred = np.round(pred)
 
-        self.diff = np.abs(self.true - self.pred)
+        self.diff = self.true - self.pred
+        self.abs_diff = np.abs(self.diff)
         self.n = np.max(self.pred.shape)
 
         return [func() for func in self.metrics.values()]

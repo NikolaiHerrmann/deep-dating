@@ -4,7 +4,7 @@ import numpy as np
 
 class EarlyStopper:
 
-    def __init__(self, patience=15):
+    def __init__(self, patience):
         self.patience = patience
         self.min_val_loss = np.inf
         

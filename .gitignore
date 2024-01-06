@@ -1,6 +1,6 @@
 __pycache__/
 experimental/
-
+*notes*
 figs/
 runs/
 *.npy
