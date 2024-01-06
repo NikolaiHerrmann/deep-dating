@@ -1,16 +1,19 @@
 #!/bin/bash
 
 #SBATCH --time=12:00:00
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=16G
+#SBATCH --cpus-per-task=8
+#SBATCH --output=job-%j.log
+#SBATCH --mem=24G
 #SBATCH --gpus-per-node=1
 #SBATCH --partition=gpu
 #SBATCH --job-name=deep_dating_cnn 
 
-module purge
-module load Python/3.9.6-GCCcore-11.2.0
+module load Python/3.10.4-GCCcore-11.3.0
+module load PyTorch/1.12.1-foss-2022a-CUDA-11.7.0
+module load matplotlib/3.5.2-foss-2022a
+module load SciPy-bundle/2022.05-foss-2022a
+module load scikit-learn/0.24.1-foss-2022a
+module load OpenCV/4.6.0-foss-2022a-contrib
+module load scikit-image/0.19.3-foss-2022a
 
-source $HOME/venvs/deep_dating_cnn1/bin/activate
-
-srun python3 train.py
+python3 train.py

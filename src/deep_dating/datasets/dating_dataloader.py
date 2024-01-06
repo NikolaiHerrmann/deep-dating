@@ -10,7 +10,7 @@ from deep_dating.util import save_figure
 
 class DatingDataLoader(DataLoader):
 
-    def __init__(self, dataset_name, set_type, model, batch_size=16, shuffle=True, num_workers=8):
+    def __init__(self, dataset_name, set_type, model, batch_size=32, shuffle=True, num_workers=7):
         self.__batch_size = batch_size
         super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model.input_size), 
                          batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
