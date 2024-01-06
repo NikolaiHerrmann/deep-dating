@@ -44,7 +44,7 @@ class DatingTrainer:
                 outputs = model(inputs)
                 loss = model.criterion(outputs, labels)
 
-                self.metric_writer.add_batch_outputs(loss.item(), labels.detach().numpy(), outputs.detach().numpy())
+                self.metric_writer.add_batch_outputs(loss.item(), labels.cpu().detach().numpy(), outputs.cpu().detach().numpy())
                 
                 loss.backward()
                 model.optimizer.step()
