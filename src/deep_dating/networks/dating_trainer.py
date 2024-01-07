@@ -1,11 +1,13 @@
 
 import os
 import torch
+import json
 from tqdm import tqdm
 from deep_dating.networks import EarlyStopper
 from deep_dating.metrics import MetricWriter
 from deep_dating.datasets import DatingDataLoader, SetType
 from deep_dating.util import get_date_as_str, get_torch_device
+
 
 class DatingTrainer:
 
@@ -13,6 +15,7 @@ class DatingTrainer:
         self.save_path = "runs"
         self._init_save_dir()
         self.num_epochs = num_epochs
+        self.patience = patience
         self.verbose = verbose
         self.device = get_torch_device(verbose)
         self.early_stopper = EarlyStopper(patience)
@@ -23,9 +26,27 @@ class DatingTrainer:
         os.mkdir(self.exp_path)
         self.metric_writer = MetricWriter(self.exp_path)
 
+    def _write_training_settings(self, model, loader):
+        settings = {}
+
+        settings["max_num_epochs"] = self.num_epochs
+        settings["patience"] = self.patience
+        settings["model_name"] = model.model_name
+        settings["img_input_size"] = model.input_size
+        settings["learning_rate"] = model.learning_rate
+        settings["batch_size"] = loader.model_batch_size
+
+        json_object = json.dumps(settings, indent=4)
+
+        with open(os.path.join(self.exp_path, "settings.json"), "w") as f:
+            f.write(json_object)
+
     def train(self, model, dataset):
         train_loader = DatingDataLoader(dataset, SetType.TRAIN, model)
         val_loader = DatingDataLoader(dataset, SetType.VAL, model)
+
+        self._write_training_settings(model, train_loader)
+        
         model.to(self.device)
 
         for epoch in range(self.num_epochs):

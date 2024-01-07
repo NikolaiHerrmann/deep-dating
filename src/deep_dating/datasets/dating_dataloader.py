@@ -11,16 +11,16 @@ from deep_dating.util import save_figure
 class DatingDataLoader(DataLoader):
 
     def __init__(self, dataset_name, set_type, model, batch_size=32, shuffle=True, num_workers=7):
-        self.__batch_size = batch_size
+        self.model_batch_size = batch_size
         super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model.input_size), 
                          batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
     def test_loading(self):
         images, labels = next(iter(self))
-        num_cells = int(np.ceil(np.sqrt(self.__batch_size)))
+        num_cells = int(np.ceil(np.sqrt(self.model_batch_size)))
         fig, axs = plt.subplots(num_cells, num_cells)
         
-        for i in range(self.__batch_size):
+        for i in range(self.model_batch_size):
             a = axs[i % num_cells, i // num_cells]
             a.imshow(images[i][0], cmap="gray")
             a.set_title(f"Date: {labels[i]}")

@@ -10,15 +10,16 @@ class DatingCNN(nn.Module):
     IMAGE_NET_MODELS = {"inception_resnet_v2": 299, 
                         "resnet50": 256}
 
-    def __init__(self, model_name, pretrained=True, input_size=None):
+    def __init__(self, model_name, pretrained=True, input_size=None, learning_rate=0.001):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
         self.model_name = model_name
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=1)
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
+        self.learning_rate = learning_rate
 
-        self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=0.001)
+        self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
         #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.criterion = nn.MSELoss()
 
