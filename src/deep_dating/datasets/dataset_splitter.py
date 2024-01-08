@@ -1,16 +1,23 @@
 
 import numpy as np
-from deep_dating.util import dating_util
+import os
+from tqdm import tqdm
+from deep_dating.util import SEED, DATASETS_PATH
 from deep_dating.datasets import SetType
+from deep_dating.augmentation import ImageMorphRunner
 from sklearn.model_selection import train_test_split
 
 
 class DatasetSplitter:
 
-    def __init__(self, dataset, min_class_count=5, test_size=0.3, val_size=0.2, verbose=True):
+    def __init__(self, dataset, min_count=None, max_count=None, min_removal_count=5, 
+                 test_size=0.3, val_size=0.2, verbose=True):
         self.X = dataset.X
         self.y = dataset.y
-        self.min_class_count = min_class_count
+        self.aug_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_Aug")
+        self.min_count = min_count
+        self.max_count = max_count
+        self.min_removal_count = min_removal_count
         self.test_size = test_size
         self.val_size = val_size
         self.verbose = verbose
@@ -30,7 +37,7 @@ class DatasetSplitter:
 
     def _remove_low_count_samples(self):
         unique_dates, counts = np.unique(self.y, return_counts=True)
-        low_count_idxs = counts < self.min_class_count
+        low_count_idxs = counts < self.min_removal_count
         kick_out_dates = unique_dates[low_count_idxs]
         num_kick_out_dates = kick_out_dates.size
 
@@ -42,15 +49,78 @@ class DatasetSplitter:
                 dict_ = dict(zip(kick_out_dates, counts[low_count_idxs]))
                 print(f"Removed {num_kick_out_dates} sample(s). Hist: {dict_}")
 
+    def _balance_data(self, X, y):
+        unique_labels, counts = np.unique(y, return_counts=True)
+        X_new = []
+        y_new = []
+        total_aug = 0
+        total_img = 0
+        augment_runner = ImageMorphRunner()
+
+        for label, count in tqdm(zip(unique_labels, counts), disable = not self.verbose, total=len(counts)):
+            label_idxs = np.where(y == label)[0]
+            
+            # undersample
+            if count > self.max_count:
+                label_idxs = np.random.choice(label_idxs, size=self.max_count, replace=False)
+                assert label_idxs.shape[0] == self.max_count
+
+            X_keep = X[label_idxs]
+            y_keep = y[label_idxs]
+            total_img += label_idxs.shape[0]
+
+            # oversample with augmentation
+            if count < self.min_count:
+                n_missing = self.min_count - count
+                
+                # repeat each sample n times
+                if n_missing > count:
+                    aug_each_factor = int(n_missing / count)
+                    aug_idxs = np.repeat(label_idxs, aug_each_factor)
+                    n_missing -= aug_each_factor * count
+                else:
+                    aug_idxs = np.array([], dtype=label_idxs.dtype)
+
+                # randomly choice missing samples
+                if n_missing > 0:
+                    aug_idxs_extra = np.random.choice(label_idxs, size=n_missing, replace=False)
+                    aug_idxs = np.concatenate([aug_idxs, aug_idxs_extra])
+
+                assert aug_idxs.shape[0] + X_keep.shape[0] == self.min_count
+                total_aug += aug_idxs.shape[0]
+                
+                X_aug = augment_runner.run_batch(X[aug_idxs], self.aug_path)
+                y_aug = np.full(shape=aug_idxs.shape, fill_value=label)
+                assert y_aug.shape[0] + y_keep.shape[0] == self.min_count
+
+                X_keep = np.concatenate([X_keep, X_aug])
+                y_keep = np.concatenate([y_keep, y_aug])
+
+            X_new.append(X_keep)
+            y_new.append(y_keep)
+
+        X_new = np.concatenate(X_new)
+        y_new = np.concatenate(y_new)
+
+        unique_labels_new, counts_new = np.unique(y_new, return_counts=True)
+
+        if self.verbose:
+            print("Counts compare:", counts, counts_new)
+            print(total_aug, "new images were made through augmentation. Non-aug =", total_img)
+
+        return X_new, y_new
+
     def _make_split(self):
         (self.X_train_org, self.X_test,
          self.y_train_org, self.y_test) = self._split_data(self.X, self.y, self.test_size)
-        
-        # augment data
 
         (self.X_train, self.X_val,
          self.y_train, self.y_val) = self._split_data(self.X_train_org, self.y_train_org, self.val_size)
         
+        if self.min_count and self.max_count:
+            os.makedirs(self.aug_path, exist_ok=True)
+            self.X_train, self.y_train = self._balance_data(self.X_train, self.y_train)
+        
     def _split_data(self, X, y, test_size_ratio):
         return train_test_split(X, y, test_size=test_size_ratio, shuffle=True,
-                                random_state=dating_util.SEED, stratify=y)
+                                random_state=SEED, stratify=y)
