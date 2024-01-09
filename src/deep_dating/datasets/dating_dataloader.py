@@ -12,6 +12,7 @@ class DatingDataLoader(DataLoader):
 
     def __init__(self, dataset_name, set_type, model, batch_size=32, shuffle=True, num_workers=7):
         self.model_batch_size = batch_size
+        self.dataset_name = dataset_name
         super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model.input_size), 
                          batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         

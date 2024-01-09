@@ -35,6 +35,7 @@ class DatingTrainer:
         settings["img_input_size"] = model.input_size
         settings["learning_rate"] = model.learning_rate
         settings["batch_size"] = loader.model_batch_size
+        settings["dataset"] = loader.dataset_name.value
 
         json_object = json.dumps(settings, indent=4)
 
