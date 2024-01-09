@@ -1,8 +1,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
-from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.preprocessing import Preprocessor
 from deep_dating.util import save_figure
@@ -13,7 +11,7 @@ class DatingDataLoader(DataLoader):
     def __init__(self, dataset_name, set_type, model, batch_size=32, shuffle=True, num_workers=7):
         self.model_batch_size = batch_size
         self.dataset_name = dataset_name
-        super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model.input_size), 
+        super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model), 
                          batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
     def test_loading(self):
@@ -31,19 +29,13 @@ class DatingDataLoader(DataLoader):
 
     class PytorchDatingDataset(Dataset):
 
-        def __init__(self, dataset_name, set_type, img_size):
+        def __init__(self, dataset_name, set_type, model):
             self.X, self.y = Preprocessor(dataset_name).read_preprocessing_header(set_type)
-            self.transform = transforms.Compose([transforms.ToTensor(),
-                                                 transforms.Resize(img_size, antialias=True),
-                                                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+            self.model = model
 
         def __getitem__(self, idx):
             img_path, img_date = self.X[idx], self.y[idx]
-            
-            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-            img = self.transform(img)
-
+            img = self.model.transform_img(img_path)
             return img, img_date, img_path
         
         def __len__(self):
