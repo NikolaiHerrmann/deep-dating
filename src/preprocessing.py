@@ -7,7 +7,7 @@ from deep_dating.preprocessing import PatchExtractor, PatchMethod, Preprocessor
 def preprocess(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, 220, 220)
+    splitter = DatasetSplitter(dataset, 50, 50) #220
     preprocessor = Preprocessor(dataset.name)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES).extract_patches
 
@@ -21,7 +21,7 @@ def test_patch_extraction():
     dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES)
 
     #for dataset in load_all_dating_datasets():
-    for file in CLaMM().X:
+    for file in ScribbleLens().X:
         dp.extract_patches(file)
         dp.save_plot(show=True)
             #break
@@ -33,6 +33,6 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # if args.test:
-    test_patch_extraction()
-    #preprocess(CLaMM())
+    #test_patch_extraction()
+    preprocess(ScribbleLens())
 

@@ -7,10 +7,9 @@ from deep_dating.augmentation import ImageMorph
 
 class ImageMorphRunner:
 
-    def __init__(self, displacement_range=(1, 3), radius_range=(1, 10), c_program_name="imagemorph2", verbose=True):
+    def __init__(self, displacement_range=(1, 1.3), radius_range=(1, 8), verbose=True):
         self.displacement_range = displacement_range
         self.radius_range = radius_range
-        self.c_program_name = c_program_name
         self.verbose = verbose
 
     def run(self, arg):
@@ -18,7 +17,7 @@ class ImageMorphRunner:
         rand_displacement = np.random.uniform(*self.displacement_range)
         rand_radius = np.random.uniform(*self.radius_range)
 
-        img_name = os.path.basename(img_path).split(".")[0] + f"_aug_{id_num}.ppm"
+        img_name = os.path.basename(img_path).rsplit(".", 1)[0] + f"_aug_{int(id_num)}.ppm"
         output_img_path = os.path.join(self.output_dir, img_name)
 
         ImageMorph().apply_rubber_sheet(img_path, rand_displacement, rand_radius, output_img_path)

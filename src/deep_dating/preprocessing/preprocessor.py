@@ -14,12 +14,12 @@ class Preprocessor:
         self.csv_header_path = os.path.join(self.save_path, "split.csv")
 
     def _preprocess_img(self, arg):
-        img_path, img_date = arg
+        img_path, img_date, img_id = arg
         imgs = self.process_func(img_path)
-        old_img_name = os.path.basename(img_path).split(".")[0]
+        old_img_name = os.path.basename(img_path).rsplit(".", 1)[0]
         names = []
         for i, img in enumerate(imgs):
-            new_image_name = old_img_name + f"__{int(img_date)}_p{i}.ppm"
+            new_image_name = old_img_name + f"__{int(img_id)}_{int(img_date)}_p{i}.ppm"
             file_name = os.path.join(self.save_path, new_image_name)
             plt.imsave(file_name, img, cmap="gray")
             names.append((file_name, img_date))
@@ -34,8 +34,9 @@ class Preprocessor:
         self.process_func = preprocessing_func
         os.makedirs(self.save_path, exist_ok=True)
         
+        ids = np.arange(np.max(X.shape))
         with Pool() as pool:
-            processed_imgs = pool.map(self._preprocess_img, zip(X, y))
+            processed_imgs = pool.map(self._preprocess_img, zip(X, y, ids))
 
         concat = []
         for x in processed_imgs:

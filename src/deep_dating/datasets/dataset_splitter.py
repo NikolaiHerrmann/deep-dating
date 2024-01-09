@@ -102,7 +102,7 @@ class DatasetSplitter:
         X_new = np.concatenate(X_new)
         y_new = np.concatenate(y_new)
 
-        unique_labels_new, counts_new = np.unique(y_new, return_counts=True)
+        _, counts_new = np.unique(y_new, return_counts=True)
 
         if self.verbose:
             print("Counts compare:", counts, counts_new)
