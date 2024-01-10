@@ -26,6 +26,7 @@ class PatchExtractor:
         self.line_peak_distance = line_peak_distance
         self.num_random_patches = num_random_patches
         self.plot = plot
+        self.extra_draw_info = None
         self.patch_size = patch_size_for_random
         self.calc_pixel_overlap = calc_pixel_overlap
         self.rm_white_pixel_ratio = rm_white_pixel_ratio
@@ -40,6 +41,9 @@ class PatchExtractor:
             self.method = method
 
         self.patch_ls = []
+        if self.plot:
+            self.extra_draw_info = []
+
         func = self.method_funcs.get(self.method)
         if not func:
             print("Unknown method! Returning empty patch list.")
@@ -56,9 +60,14 @@ class PatchExtractor:
             title = str(self.method)
         dating_util.save_figure(title, show=show)
 
+    def get_extra_draw_info(self):
+        if not self.extra_draw_info:
+            print("No extra draw info was saved, set plot=True")
+        return self.extra_draw_info
+
     def _read_img(self, path):
-        self.img = cv2.imread(path)
-        self.img = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        self.img_org = cv2.imread(path)
+        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
         self.height, self.width = self.img.shape
 
         self.img_bin = binarize_img(self.img, show=False)
@@ -108,6 +117,8 @@ class PatchExtractor:
         self.patch_size = min(patch_size, self.height, self.width)
 
     def _draw_rect(self, x, y, color="blue"):
+        self.extra_draw_info.append((x, y, self.patch_size, self.patch_size))
+
         rect = plt_patches.Rectangle((x, y), self.patch_size, self.patch_size, 
                                      linewidth=2, edgecolor=color, alpha=0.4, 
                                      facecolor=color, linestyle="dotted")

@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 FIGURE_PATH = "../figs"
 DATASETS_PATH = "../../datasets"
 SEED = 42
+VERBOSE = True
 
 def set_seed():
     random.seed(SEED)
@@ -18,7 +19,8 @@ def set_seed():
     torch.manual_seed(SEED)
     torch.cuda.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
-    print(f"Seed set to {SEED}")
+    if VERBOSE:
+        print(f"Seed set to {SEED}")
 
 set_seed()
 
