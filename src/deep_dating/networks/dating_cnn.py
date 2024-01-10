@@ -40,6 +40,8 @@ class DatingCNN(nn.Module):
     def load(self, path, continue_training):
         self.load_state_dict(torch.load(path, map_location=get_torch_device(self.verbose)))
         self.train() if continue_training else self.eval()
+        if self.verbose:
+            print("Model loading completed!")
 
     def transform_img(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
