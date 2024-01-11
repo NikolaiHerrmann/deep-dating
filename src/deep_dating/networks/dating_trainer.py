@@ -36,6 +36,7 @@ class DatingTrainer:
         settings["learning_rate"] = model.learning_rate
         settings["batch_size"] = loader.model_batch_size
         settings["dataset"] = loader.dataset_name.value
+        settings["starting_weights"] = model.starting_weights
 
         json_object = json.dumps(settings, indent=4)
 
@@ -87,12 +88,14 @@ class DatingTrainer:
                     self.metric_writer.add_batch_outputs(loss.item(), labels.cpu().detach().numpy(), outputs.cpu().detach().numpy())
 
             mean_val_loss = self.metric_writer.mark_epoch(epoch)
-            print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")
+            if self.verbose:
+                print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")
 
             stop, save_model = self.early_stopper.stop(mean_val_loss)
             if save_model:
                 path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
                 model.save(path)
             if stop:
-                print("Stopping early!")
+                if self.verbose:
+                    print("Stopping early!")
                 break

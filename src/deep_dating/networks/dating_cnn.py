@@ -30,6 +30,7 @@ class DatingCNN(nn.Module):
                                               transforms.Resize(self.input_size, antialias=True),
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                                    std=[0.229, 0.224, 0.225])])
+        self.starting_weights = model_name if pretrained else None
 
     def forward(self, x):
         return self.base_model(x)
@@ -39,7 +40,11 @@ class DatingCNN(nn.Module):
 
     def load(self, path, continue_training):
         self.load_state_dict(torch.load(path, map_location=get_torch_device(self.verbose)))
-        self.train() if continue_training else self.eval()
+        if continue_training:
+            self.starting_weights = path
+            self.train()
+        else:
+            self.eval()
         if self.verbose:
             print("Model loading completed!")
 
