@@ -22,6 +22,7 @@ class DatingPredictor:
         all_paths = []
 
         self.device = get_torch_device(verbose=self.verbose)
+        model.to(self.device)
 
         if not save_path:
             save_path = "pred_" + get_date_as_str() + ".pkl"
