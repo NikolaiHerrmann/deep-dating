@@ -8,7 +8,7 @@ import matplotlib.patheffects as pe
 from matplotlib import cm, colors
 from deep_dating.networks import DatingCNN
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
-from deep_dating.datasets import MPS, ScribbleLens, CLaMM
+from deep_dating.datasets import MPS, ScribbleLens, CLaMM, DatasetSplitter, SetType
 from deep_dating.util import save_figure
 
 
@@ -26,7 +26,10 @@ def plot_patch_prediction(patch_extractor, output, final_prediction, true_label)
     unique_colors = np.sort(np.unique(output))
     cmap_full = plt.get_cmap("Spectral")
     cmap = plt.get_cmap("Spectral", unique_colors.shape[0])
-    norm = colors.Normalize(np.min(output) - 1, np.max(output) + 1)
+    min_, max_ = np.min(output), np.max(output)
+    if true_label:
+        min_, max_ = min(min_, true_label), max(max_, true_label)
+    norm = colors.Normalize(min_ - 1, max_ + 1)
 
     # Draw each patch
     for i, (x, y, w, h) in enumerate(patch_drawing_info):
@@ -36,7 +39,7 @@ def plot_patch_prediction(patch_extractor, output, final_prediction, true_label)
         rect = plt_patches.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, 
                                      alpha=0.4, facecolor=color, linestyle="dotted")
         ax.add_patch(rect)
-        ax.annotate(str(label), (x + (w / 2), y + (h / 2)), fontsize=14,
+        ax.annotate(str(label), (x + (w / 2), y + (h / 2)), fontsize=9,
                     color="white", weight='bold', ha='center', va='center',
                     path_effects=[pe.withStroke(linewidth=3, foreground="black")])
 
@@ -61,7 +64,7 @@ def plot_patch_prediction(patch_extractor, output, final_prediction, true_label)
 
 def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True):
 
-    model_path = "runs/Jan6-22-21-16/model_epoch_28.pt"
+    model_path = "runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
     model = DatingCNN("inception_resnet_v2", verbose=False)
     model.load(model_path, continue_training=False)
     
@@ -81,8 +84,9 @@ def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True)
     return final_prediction
 
 
-def run_over_dataset(dataset):
-    data = list(zip(dataset.X, dataset.y))
+def run_over_dataset(dataset, set_type=SetType.VAL):
+    x, y = DatasetSplitter(dataset).get_data(set_type)
+    data = list(zip(x, y))
     random.shuffle(data)
     for img_file, label in data:
         run_patch_pipeline(img_file, true_label=label)
