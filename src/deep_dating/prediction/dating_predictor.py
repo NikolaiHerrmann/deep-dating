@@ -25,6 +25,8 @@ class DatingPredictor:
 
         if not save_path:
             save_path = "pred_" + get_date_as_str() + ".pkl"
+            if self.verbose:
+                print("No save path was given using:", save_path)
 
         with torch.no_grad():
             for inputs, labels, paths in tqdm(data_loader, disable = not self.verbose):

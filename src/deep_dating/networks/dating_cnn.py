@@ -9,10 +9,13 @@ import timm
 
 class DatingCNN(nn.Module):
 
-    IMAGE_NET_MODELS = {"inception_resnet_v2": 299, 
-                        "resnet50": 256}
+    INCEPTION = "inception_resnet_v2"
+    RESNET50 = "resnet50"
+    IMAGE_NET_MODELS = {INCEPTION: 299, 
+                        RESNET50: 256}
 
-    def __init__(self, model_name, pretrained=True, input_size=None, learning_rate=0.001, verbose=True):
+    def __init__(self, model_name, pretrained=True, input_size=None, 
+                 learning_rate=0.001, verbose=True):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
@@ -21,11 +24,8 @@ class DatingCNN(nn.Module):
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
         self.verbose = verbose
-
         self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
-        #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.criterion = nn.MSELoss()
-
         self.transforms = transforms.Compose([transforms.ToTensor(),
                                               transforms.Resize(self.input_size, antialias=True),
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
@@ -38,13 +38,27 @@ class DatingCNN(nn.Module):
     def save(self, path):
         torch.save(self.state_dict(), path)
 
-    def load(self, path, continue_training):
+    def _discard_output_layer(self):        
+        discard_layer = nn.Identity()
+        classifier_layer = self.base_model.pretrained_cfg["classifier"]
+        setattr(self.base_model, classifier_layer, discard_layer)
+
+        assert type(self.base_model.get_classifier()) == type(discard_layer), "Failed to change classifier!"
+
+        if self.verbose:
+            print("Changed last layer to:", type(discard_layer))
+
+    def load(self, path, continue_training, use_as_feat_extractor=False):
         self.load_state_dict(torch.load(path, map_location=get_torch_device(self.verbose)))
+
         if continue_training:
             self.starting_weights = path
             self.train()
         else:
+            if use_as_feat_extractor:
+                self._discard_output_layer()
             self.eval()
+
         if self.verbose:
             print("Model loading completed!")
 
