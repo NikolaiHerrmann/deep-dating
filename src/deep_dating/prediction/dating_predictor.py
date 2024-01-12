@@ -34,7 +34,7 @@ class DatingPredictor:
 
                 inputs = inputs.to(self.device)
                 outputs = model(inputs)
-                outputs = outputs.detach().numpy()
+                outputs = outputs.cpu().detach().numpy()
 
                 labels = labels.unsqueeze(1)
 
