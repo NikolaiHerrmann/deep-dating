@@ -4,6 +4,8 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from deep_dating.util import get_torch_device, get_date_as_str
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 class DatingPredictor:
