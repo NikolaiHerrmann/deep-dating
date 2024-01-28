@@ -93,4 +93,4 @@ def run_over_dataset(dataset, set_type=SetType.VAL):
 
 
 if __name__ =="__main__":
-    run_over_dataset(MPS())
+    run_over_dataset(CLaMM())

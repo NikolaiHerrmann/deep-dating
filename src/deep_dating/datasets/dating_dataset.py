@@ -66,7 +66,7 @@ class MPS(DatingDataset):
 class CLaMM(DatingDataset):
 
     def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training")):
-        self.class_range = {1: (0, 1000),
+        self.class_range = {1: (1000, 1000),
                             2: (1001, 1100),
                             3: (1101, 1200),
                             4: (1201, 1250),
@@ -106,8 +106,12 @@ class CLaMM(DatingDataset):
 class ScribbleLens(DatingDataset):
 
     def __init__(self, path=os.path.join("scribblelens.supplement.original.pages"),
-                 path_header=os.path.join("scribblelens.corpus.v1.2", "scribblelens.corpus.v1", "corpora")):
+                 path_header=os.path.join("scribblelens.corpus.v1.2", "scribblelens.corpus.v1", "corpora"),
+                 start_bin_date=1595, bin_width=20):
         self.path_header = path_header
+        self.start_bin_date = start_bin_date
+        self.bin_width = bin_width
+        self.writer_ids_per_date = {}
         super().__init__(path, DatasetName.SCRIBBLE)
 
     def _read_header_file(self):
@@ -168,6 +172,14 @@ class ScribbleLens(DatingDataset):
             imgs_in_dir += imgs_listed
         
         return imgs_in_dir
+    
+    def _add_writer(self, date, writer_id):
+        date = int(date)
+        writer_id = int(writer_id)
+
+        if not date in self.writer_ids_per_date:
+            self.writer_ids_per_date[date] = set()
+        self.writer_ids_per_date[date].add(writer_id)
 
     def _extract_img_names(self):
         imgs_listed = []
@@ -176,16 +188,43 @@ class ScribbleLens(DatingDataset):
         # use *.j* as files are both .jpg and .jpeg
         imgs_found = glob.glob(os.path.join(DATASETS_PATH, self.path, "**", "*.j*"), recursive=True)
 
-        for img_dir, date, writer_name in zip(self.header_df["directory"], self.header_df["year"], self.header_df["writer-name"]):
+        for img_dir, date, writer_name, writer_id in zip(self.header_df["directory"], self.header_df["year"], 
+                                                         self.header_df["writer-name"], self.header_df["ID"]):
             imgs_in_dir = self._parse_dir(img_dir, writer_name)
             imgs_listed += imgs_in_dir
             self.date_ls += [date] * len(imgs_in_dir)
 
+            self._add_writer(date, writer_id)
+
         self._verify_header_matches_imgs_found(imgs_found, imgs_listed)
 
         return imgs_listed
+    
+    def _calc_bins(self):
+        self.bins = []
+        self.bin_tokens = []
+        start_date = self.start_bin_date
+        max_date = np.max(self.date_ls)
 
+        while start_date < max_date:
+            end_date = start_date + self.bin_width
+            self.bins.append((start_date, end_date))
+            self.bin_tokens.append(np.mean([start_date, end_date]))
+            start_date = end_date
+
+    def _apply_bins(self):
+        new_dates = np.zeros(self.date_ls.shape)
+
+        for (start_date, end_date), token in zip(self.bins, self.bin_tokens):
+            idxs = np.where((self.date_ls >= start_date) & (self.date_ls < end_date))
+            new_dates[idxs] = token
+
+        return new_dates
+    
     def _extract_img_dates(self):
+        self.date_ls = np.array(self.date_ls)
+        # self._calc_bins()
+        # new_date_ls = self._apply_bins()
         return self.date_ls
 
 

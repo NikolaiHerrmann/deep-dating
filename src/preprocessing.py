@@ -21,10 +21,18 @@ def test_patch_extraction():
     dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES)
 
     #for dataset in load_all_dating_datasets():
-    for file in ScribbleLens().X:
+    import random
+    x = CLaMM().X
+    random.shuffle(x)
+    for file in x:
         dp.extract_patches(file)
         dp.save_plot(show=True)
             #break
+
+
+def test():
+    d = ScribbleLens()
+    print(d.writer_ids_per_date)
 
 
 if __name__ == "__main__":
@@ -33,6 +41,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # if args.test:
-    #test_patch_extraction()
-    preprocess(CLaMM())
+    test_patch_extraction()
+    #test()
+    #preprocess(CLaMM())
 
