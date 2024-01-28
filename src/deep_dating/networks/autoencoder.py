@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from torchsummary import summary
+from pytorch_msssim import ssim
 from deep_dating.networks import ModelType
 
 
@@ -53,8 +54,11 @@ class Autoencoder(nn.Module):
         )
 
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
-        self.criterion = nn.MSELoss()
+        self.criterion = self.ssim_loss #nn.MSELoss()
         self.metrics = None
+
+    def ssim_loss(self, X, Y):
+        return (1 - ssim(X, Y, data_range=255, size_average=True)) / 2
 
     def forward(self, x):
         return self.decoder(self.encoder(x))
