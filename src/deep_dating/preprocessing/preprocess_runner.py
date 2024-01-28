@@ -7,10 +7,10 @@ from deep_dating.util import DATASETS_PATH
 from multiprocessing import Pool
 
 
-class Preprocessor:
+class PreprocessRunner:
 
-    def __init__(self, dataset_name):
-        self.save_path = os.path.join(DATASETS_PATH, str(dataset_name) + "_Set")
+    def __init__(self, dataset_name, ext="_Set"):
+        self.save_path = os.path.join(DATASETS_PATH, str(dataset_name) + ext)
         self.csv_header_path = os.path.join(self.save_path, "split.csv")
 
     def _preprocess_img(self, arg):

@@ -111,8 +111,13 @@ class DatasetSplitter:
         return X_new, y_new
 
     def _make_split(self):
-        (self.X_train_org, self.X_test,
-         self.y_train_org, self.y_test) = self._split_data(self.X, self.y, self.test_size)
+        if self.test_size > 0:
+            (self.X_train_org, self.X_test,
+            self.y_train_org, self.y_test) = self._split_data(self.X, self.y, self.test_size)
+        else:
+            if self.verbose:
+                print("Making no test split!")
+            self.X_train_org, self.y_train_org = self.X, self.y
 
         (self.X_train, self.X_val,
          self.y_train, self.y_val) = self._split_data(self.X_train_org, self.y_train_org, self.val_size)

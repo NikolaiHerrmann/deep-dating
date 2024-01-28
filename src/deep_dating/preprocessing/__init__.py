@@ -1,3 +1,4 @@
 from .binarize import *
 from .patch_extraction import *
-from .preprocessor import *
+from .image_splitter import *
+from .preprocess_runner import *
