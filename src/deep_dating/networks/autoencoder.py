@@ -4,12 +4,17 @@ import torch
 import torch.nn as nn
 from torchvision import transforms
 from torchsummary import summary
+from deep_dating.networks import ModelType
 
 
 class Autoencoder(nn.Module):
 
-    def __init__(self, learning_rate=0.001):
+    def __init__(self, learning_rate=0.001, input_size=512):
         super(Autoencoder, self).__init__()
+        self.learning_rate = learning_rate
+        self.model_name = "autoencoder"
+        self.model_type = ModelType.AUTOENCODER
+        self.input_size = input_size
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
@@ -47,8 +52,9 @@ class Autoencoder(nn.Module):
             nn.ReLU()
         )
 
-        self.optimizer = torch.optim.AdamW(self.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.MSELoss()
+        self.metrics = None
 
     def forward(self, x):
         return self.decoder(self.encoder(x))
@@ -62,6 +68,9 @@ class Autoencoder(nn.Module):
     def transform_img(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         return transforms.ToTensor()(img)
+    
+    def save(self, path):
+        torch.save(self.state_dict(), path)
     
 
 if __name__ == "__main__":

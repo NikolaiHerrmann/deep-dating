@@ -2,21 +2,21 @@
 import os
 import numpy as np
 import pandas as pd
-from deep_dating.metrics import DatingMetrics
 from deep_dating.util import get_date_as_str
 
 
 class MetricWriter:
 
-    def __init__(self, path):
+    def __init__(self, path, metrics):
         file_name = "epoch_log_" + get_date_as_str() + ".csv"
         self.csv_path = os.path.join(path, file_name)
 
-        self.metrics = DatingMetrics()
+        self.metrics = metrics
 
         cols = ["set_type", "epoch", "mean_loss",
                 "std_loss", "min_loss", "max_loss"]
-        cols += self.metrics.names
+        if self.metrics:
+            cols += self.metrics.names
         self.write_row_to_file(cols)
 
     def _reset_epoch_stats(self):
@@ -38,8 +38,9 @@ class MetricWriter:
 
     def add_batch_outputs(self, losses, labels, preds):
         self.epoch_losses.append(losses)
-        self.epoch_labels.append(labels)
-        self.epoch_preds.append(preds)
+        if self.metrics:
+            self.epoch_labels.append(labels)
+            self.epoch_preds.append(preds)
 
     def mark_epoch(self, epoch):
         mean_loss = np.mean(self.epoch_losses)
@@ -47,12 +48,15 @@ class MetricWriter:
         min_loss = np.min(self.epoch_losses)
         max_loss = np.max(self.epoch_losses)
 
-        self.epoch_labels = np.concatenate(self.epoch_labels)
-        self.epoch_preds = np.concatenate(self.epoch_preds)
-        metric_vals = self.metrics.calc(self.epoch_labels, self.epoch_preds)
-
         row_to_write = [self.state, epoch, mean_loss,
-                        std_loss, min_loss, max_loss] + metric_vals
+                        std_loss, min_loss, max_loss]
+
+        if self.metrics:
+            self.epoch_labels = np.concatenate(self.epoch_labels)
+            self.epoch_preds = np.concatenate(self.epoch_preds)
+            metric_vals = self.metrics.calc(self.epoch_labels, self.epoch_preds)
+            row_to_write += metric_vals
+
         self.write_row_to_file(row_to_write)
 
         return mean_loss

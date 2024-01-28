@@ -1,5 +1,7 @@
 
 from deep_dating.util import get_torch_device
+from deep_dating.networks import ModelType
+from deep_dating.metrics import DatingMetrics
 import torch
 import cv2
 import torch.nn as nn
@@ -20,6 +22,7 @@ class DatingCNN(nn.Module):
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
         self.model_name = model_name
+        self.model_type = ModelType.PATCH_CNN
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=1)
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
@@ -31,6 +34,7 @@ class DatingCNN(nn.Module):
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                                    std=[0.229, 0.224, 0.225])])
         self.starting_weights = model_name if pretrained else None
+        self.metrics = DatingMetrics()
 
     def forward(self, x):
         return self.base_model(x)
