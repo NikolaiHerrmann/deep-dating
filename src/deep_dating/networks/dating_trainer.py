@@ -96,7 +96,7 @@ class DatingTrainer:
                 loss.backward()
                 model.optimizer.step()
 
-            self._save_example(epoch, "train", model, inputs, outputs_detach)
+            self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach)
             mean_train_loss = self.metric_writer.mark_epoch(epoch)
             model.eval()
             self.metric_writer.eval()
@@ -115,7 +115,7 @@ class DatingTrainer:
 
                     self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach)
 
-            self._save_example(epoch, "val", model, inputs, outputs_detach)
+            self._save_example(epoch, "val", model, inputs.cpu().detach().numpy(), outputs_detach)
             mean_val_loss = self.metric_writer.mark_epoch(epoch)
             if self.verbose:
                 print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")
