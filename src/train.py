@@ -17,7 +17,7 @@ def train_dating_cnn():
 
 def train_autoencoder():
     model = Autoencoder()
-    trainer = DatingTrainer()
+    trainer = DatingTrainer(patience=50)
 
     dataset = DatasetName.CLAMM
 
