@@ -8,5 +8,7 @@ skimage==0.0
 timm==0.9.12
 torch==2.1.0
 torchvision==0.16.0
+torchsummary==1.5.1
 tqdm==4.66.1
 Cython==3.0.7
+pytorch_msssim==1.0.0
