@@ -103,8 +103,8 @@ def make_map(patch_extractor, patches, model):
     x_end, y_end, w, h = patch_drawing_info[-1]
     w = w + x_end - x
     h = h + y_end - y
-    rect = plt_patches.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")
-    ax[0].add_patch(rect)
+    # rect = plt_patches.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")
+    # ax[0].add_patch(rect)
     ax[1].imshow(saliency_map, cmap=plt.cm.hot)
     
     save_figure("saliency_map", fig=fig, show=True)
@@ -114,7 +114,7 @@ def make_map(patch_extractor, patches, model):
 
 def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True, make_saliency_map=True):
 
-    model_path = "runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
+    model_path = "runs/Jan9-13-59-8/model_epoch_29.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
     model = DatingCNN("inception_resnet_v2", verbose=False)
     model.load(model_path, continue_training=False)
     
@@ -149,4 +149,4 @@ def run_over_dataset(dataset, set_type=SetType.VAL):
 
 
 if __name__ =="__main__":
-    run_over_dataset(MPS())
+    run_over_dataset(ScribbleLens())

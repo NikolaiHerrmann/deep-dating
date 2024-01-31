@@ -101,7 +101,7 @@ class ImageSplitter:
 if __name__ == "__main__":
     image_splitter = ImageSplitter(plot=True)
     path = "../../../../datasets/ICDAR2017_CLaMM_Training/IRHT_P_001274.tif"
-    #path = "../datasets/MPS/Download/1550/MPS1550_0024.ppm"
+    path = "../../../../datasets/MPS/Download/1550/MPS1550_0024.ppm"
     image_splitter.split(path)
     plt.show()
     
