@@ -36,6 +36,12 @@ def save_figure(title, fig=None, fig_dir=FIGURE_PATH, show=False, pdf=True, png=
         plt.show()
 
 
+def plt_clear():
+    plt.cla()
+    plt.clf()
+    plt.close()
+
+
 def get_date_as_str():
     now = datetime.datetime.now()
     return f"{calendar.month_abbr[now.month]}{now.day}-{now.hour}-{now.minute}-{now.second}"

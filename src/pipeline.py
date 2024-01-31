@@ -1,5 +1,6 @@
 
 import random
+import cv2
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -9,15 +10,13 @@ from matplotlib import cm, colors
 from deep_dating.networks import DatingCNN
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
 from deep_dating.datasets import MPS, ScribbleLens, CLaMM, DatasetSplitter, SetType
-from deep_dating.util import save_figure
+from deep_dating.util import save_figure, plt_clear
+from tqdm import tqdm
 
 
 def plot_patch_prediction(patch_extractor, output, final_prediction, true_label):
-
     # Clear plot from patch extractor
-    plt.cla()
-    plt.clf()
-    plt.close()
+    plt_clear()
     fig, ax = plt.subplots(figsize=(15, 8))
     ax.imshow(patch_extractor.img, cmap="gray")
 
@@ -62,7 +61,58 @@ def plot_patch_prediction(patch_extractor, output, final_prediction, true_label)
     save_figure("patch_pred", fig=fig, show=True)
 
 
-def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True):
+def get_saliency_map(patch, model):
+    """
+    Adapted from https://github.com/sunnynevarekar/pytorch-saliency-maps/blob/master/Saliency_maps_in_pytorch.ipynb
+    """
+    model.eval()
+
+    patches = [model.apply_transforms(x) for x in [patch]]
+    patches = torch.from_numpy(np.array(patches))
+    patches.requires_grad = True
+    
+    preds = model(patches)
+    score, _ = torch.max(preds, 1)
+
+    score.backward()
+    
+    slc, _ = torch.max(torch.abs(patches.grad[0]), dim=0) # get max along channel axis
+    slc = (slc - slc.min()) / (slc.max()-slc.min()) # normalize to [0..1]
+
+    return slc.numpy(), score.cpu().detach().numpy()[0]
+
+
+def make_map(patch_extractor, patches, model):
+    patch_drawing_info = patch_extractor.get_extra_draw_info()
+    saliency_map = np.zeros(patch_extractor.img.shape)
+    
+    outputs = []
+
+    for i, (x, y, w, h) in tqdm(enumerate(patch_drawing_info), total=len(patch_drawing_info)):
+        patch_map, model_output = get_saliency_map(patches[i], model)
+        patch_map = cv2.resize(patch_map, (h, w), interpolation=cv2.INTER_NEAREST)
+        outputs.append(model_output)
+        saliency_map[y:y+h, x:x+w] = np.maximum(patch_map, saliency_map[y:y+h, x:x+w])
+
+    plt_clear()
+    fig, ax = plt.subplots(2, 1)
+    ax[0].imshow(patch_extractor.img_org)
+    
+    color = "blue"
+    x, y, _, _ = patch_drawing_info[0]
+    x_end, y_end, w, h = patch_drawing_info[-1]
+    w = w + x_end - x
+    h = h + y_end - y
+    rect = plt_patches.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")
+    ax[0].add_patch(rect)
+    ax[1].imshow(saliency_map, cmap=plt.cm.hot)
+    
+    save_figure("saliency_map", fig=fig, show=True)
+
+    return outputs
+
+
+def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True, make_saliency_map=True):
 
     model_path = "runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
     model = DatingCNN("inception_resnet_v2", verbose=False)
@@ -71,11 +121,16 @@ def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True)
     patch_extractor = PatchExtractor(plot=plot, method=PatchMethod.SLIDING_WINDOW_LINES)
     patches = patch_extractor.extract_patches(img_path)
 
-    patches = [model.apply_transforms(x) for x in patches]
-    patches = torch.from_numpy(np.array(patches))
+    if plot and make_saliency_map:
+        output = make_map(patch_extractor, patches, model)
+    else:
+        patches = [model.apply_transforms(x) for x in patches]
+        patches = torch.from_numpy(np.array(patches))
 
-    output = model(patches)
-    output = np.round(output.cpu().detach().numpy().flatten()).astype(int)
+        output = model(patches)
+        output = output.cpu().detach().numpy().flatten()
+    
+    output = np.round(output).astype(int)
     final_prediction = int(np.round(agg_func(output)))
 
     if plot:
@@ -88,9 +143,10 @@ def run_over_dataset(dataset, set_type=SetType.VAL):
     x, y = DatasetSplitter(dataset).get_data(set_type)
     data = list(zip(x, y))
     random.shuffle(data)
+    random.shuffle(data)
     for img_file, label in data:
         run_patch_pipeline(img_file, true_label=label)
 
 
 if __name__ =="__main__":
-    run_over_dataset(CLaMM())
+    run_over_dataset(MPS())
