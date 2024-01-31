@@ -13,31 +13,45 @@ class DatingCNN(nn.Module):
 
     INCEPTION = "inception_resnet_v2"
     RESNET50 = "resnet50"
-    IMAGE_NET_MODELS = {INCEPTION: 299, 
-                        RESNET50: 256}
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
-                 learning_rate=0.001, verbose=True):
+                 learning_rate=0.001, verbose=True, num_classes=None):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
         self.model_name = model_name
         self.model_type = ModelType.PATCH_CNN
-        self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=1)
+        self.verbose = verbose
+
+        if num_classes is None:
+            num_classes = 1
+            self.classification = False
+            self.criterion = nn.MSELoss()
+            self.final_activation = nn.Identity()
+            self.metrics = DatingMetrics()
+        else:
+            self.classification = True
+            self.criterion = nn.CrossEntropyLoss()
+            self.final_activation = nn.Sigmoid()
+            self.metrics = None
+
+        if self.verbose:
+            print("Model doing:", ("classification" if self.classification else "regression"))
+
+        self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
-        self.verbose = verbose
         self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
-        self.criterion = nn.MSELoss()
+        
         self.transforms = transforms.Compose([transforms.ToTensor(),
                                               transforms.Resize(self.input_size, antialias=True),
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                                    std=[0.229, 0.224, 0.225])])
         self.starting_weights = model_name if pretrained else None
-        self.metrics = DatingMetrics()
 
     def forward(self, x):
-        return self.base_model(x)
+        return self.final_activation(self.base_model(x))
 
     def save(self, path):
         torch.save(self.state_dict(), path)

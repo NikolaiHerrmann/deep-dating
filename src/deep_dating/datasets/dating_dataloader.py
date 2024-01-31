@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.preprocessing import PreprocessRunner
-from deep_dating.util import save_figure
+from deep_dating.util import save_figure, to_one_hot
 
 
 class DatingDataLoader(DataLoader):
@@ -30,8 +30,10 @@ class DatingDataLoader(DataLoader):
     class PytorchDatingDataset(Dataset):
 
         def __init__(self, dataset_name, set_type, model, preprocess_ext):
-            self.X, self.y = PreprocessRunner(dataset_name, preprocess_ext).read_preprocessing_header(set_type)
             self.model = model
+            self.X, self.y = PreprocessRunner(dataset_name, preprocess_ext).read_preprocessing_header(set_type)
+            if self.model.classification:
+                self.y = to_one_hot(self.y)
 
         def __getitem__(self, idx):
             img_path, img_date = self.X[idx], self.y[idx]

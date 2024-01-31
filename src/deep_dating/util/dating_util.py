@@ -52,3 +52,18 @@ def get_torch_device(verbose=False):
     if verbose:
         print(f"Running torch model on: {device}")
     return device
+
+
+def to_one_hot(y, verbose=True):
+    unique_y = np.unique(y)
+    if verbose:
+        print("Found", len(unique_y), "classes!")
+
+    idx_lookup = {date: idx for idx, date in enumerate(unique_y)}
+    
+    y_one_hot = np.zeros((y.shape[0], len(unique_y)))
+
+    for i, num in enumerate(y):
+        y_one_hot[i, idx_lookup[num]] = 1
+
+    return y_one_hot

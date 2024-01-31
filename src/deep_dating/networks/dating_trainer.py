@@ -39,6 +39,7 @@ class DatingTrainer:
 
         if model.model_type == ModelType.PATCH_CNN:
             settings["starting_weights"] = model.starting_weights
+            settings["classification"] = model.classification
 
         json_object = json.dumps(settings, indent=4)
 
@@ -47,7 +48,10 @@ class DatingTrainer:
 
     def _get_labels(self, model, labels, inputs):
         if model.model_type == ModelType.PATCH_CNN:
-            return labels.to(self.device).unsqueeze(1)
+            labels = labels.to(self.device)
+            if not model.classification:
+                labels = labels.unsqueeze(1)
+            return labels
         elif model.model_type == ModelType.AUTOENCODER:
             return inputs
         

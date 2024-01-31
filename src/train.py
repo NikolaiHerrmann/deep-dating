@@ -4,7 +4,7 @@ from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
 
 
 def train_dating_cnn():
-    model = DatingCNN(model_name="inception_resnet_v2")
+    model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
     #model.load("runs/Jan6-22-21-16/model_epoch_28.pt", continue_training=True)
     trainer = DatingTrainer()
 
@@ -28,5 +28,5 @@ def train_autoencoder():
 
 
 if __name__ == "__main__":
-    #train_dating_cnn()
-    train_autoencoder()
+    train_dating_cnn()
+    #train_autoencoder()
