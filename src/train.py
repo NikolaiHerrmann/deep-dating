@@ -4,11 +4,11 @@ from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
 
 
 def train_dating_cnn():
-    model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
+    model = DatingCNN(model_name="inception_resnet_v2", num_classes=11)
     #model.load("runs/Jan6-22-21-16/model_epoch_28.pt", continue_training=True)
-    trainer = DatingTrainer()
+    trainer = DatingTrainer(num_epochs=100, patience=10)
 
-    dataset = DatasetName.CLAMM
+    dataset = DatasetName.MPS
 
     train_loader = DatingDataLoader(dataset, SetType.TRAIN, model)
     val_loader = DatingDataLoader(dataset, SetType.VAL, model)
