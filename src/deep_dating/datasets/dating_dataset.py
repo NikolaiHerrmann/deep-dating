@@ -22,6 +22,8 @@ class DatingDataset(ABC):
         self.X = np.asarray(self._extract_img_names())
         self.y = np.asarray(self._extract_img_dates(), dtype=np.float32)
         assert len(self.X) == len(self.y), "Images and dates not of equal length!"
+        
+        self.size = len(self.X)
 
     @abstractmethod
     def _read_header_file(self):
@@ -39,6 +41,8 @@ class DatingDataset(ABC):
         if self.verbose:
             imgs_found_set, imgs_listed_set = set(imgs_found), set(imgs_listed)
             if imgs_found_set != imgs_listed_set or len(imgs_found) != len(imgs_listed):
+
+                
                 diff = imgs_found_set.symmetric_difference(imgs_listed_set)
                 print("Warning! File list found in header does not entirely",
                       f"match images found in directory. {len(diff)} image",
@@ -65,7 +69,8 @@ class MPS(DatingDataset):
 
 class CLaMM(DatingDataset):
 
-    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training")):
+    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training"),
+                 file_name_header="FILENAME", date_header="DATE_TYPE", img_exts=["tif", "jpg", "JPG"]):
         self.class_range = {1: (1000, 1000),
                             2: (1001, 1100),
                             3: (1101, 1200),
@@ -84,23 +89,42 @@ class CLaMM(DatingDataset):
         self.class_range_mean = {}
         for key, val in self.class_range.items():
             self.class_range_mean[key] = int(np.mean(val))
+        self.file_name_header = file_name_header
+        self.date_header = date_header
+        self.img_exts = img_exts
         super().__init__(path, DatasetName.CLAMM)
 
     def _read_header_file(self):
-        header_path = os.path.join(self.path, "@ICDAR2017_CLaMM_Training.csv")
+        csv_name = "@" + os.path.basename(self.path) + ".csv"
+        header_path = os.path.join(self.path, csv_name)
         self.header_df = pd.read_csv(header_path, sep=";")
 
     def _extract_img_names(self):
-        imgs_path = os.path.join(self.path, "*.tif")
-        imgs_found = glob.glob(imgs_path)
-        imgs_listed = self.header_df["FILENAME"].to_list()
+        imgs_found = []
+        for ext in self.img_exts:
+            imgs_found += glob.glob(os.path.join(self.path, "*." + ext))
+
+        imgs_listed = self.header_df[self.file_name_header].to_list()
         imgs_listed = [os.path.join(self.path, x) for x in imgs_listed]
         self._verify_header_matches_imgs_found(imgs_found, imgs_listed)
         return imgs_found
 
     def _extract_img_dates(self):
-        self.img_classes = self.header_df["DATE_TYPE"].to_list()
+        self.img_classes = self.header_df[self.date_header].to_list()
         return [self.class_range_mean[x] for x in self.img_classes]
+
+
+class CLaMM_Test_Task3(CLaMM):
+
+    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_task1_task3"),
+                 file_name_header="FILE_NAME", date_header="DATE_ICDAR"):
+        super().__init__(path, file_name_header, date_header)
+
+
+class CLaMM_Test_Task4(CLaMM_Test_Task3):
+
+    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_task2_task4")):
+        super().__init__(path)
 
 
 class ScribbleLens(DatingDataset):

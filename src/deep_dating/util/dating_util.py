@@ -7,10 +7,12 @@ import datetime
 import calendar
 import matplotlib.pyplot as plt
 
+
 FIGURE_PATH = "../figs"
 DATASETS_PATH = "../../datasets"
 SEED = 42
 VERBOSE = True
+
 
 def set_seed():
     random.seed(SEED)
@@ -54,16 +56,17 @@ def get_torch_device(verbose=False):
     return device
 
 
-def to_one_hot(y, verbose=True):
+def to_index(y, verbose=True):
     unique_y = np.unique(y)
+
     if verbose:
         print("Found", len(unique_y), "classes!")
 
     idx_lookup = {date: idx for idx, date in enumerate(unique_y)}
-    
-    y_one_hot = np.zeros((y.shape[0], len(unique_y)))
+
+    y_idx = np.zeros((y.shape[0], 1), dtype=np.longlong)
 
     for i, num in enumerate(y):
-        y_one_hot[i, idx_lookup[num]] = 1
+        y_idx[i] = idx_lookup[num]
 
-    return y_one_hot
+    return y_idx, unique_y

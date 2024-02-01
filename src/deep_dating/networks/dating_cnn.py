@@ -15,8 +15,7 @@ class DatingCNN(nn.Module):
     RESNET50 = "resnet50"
     IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256}
 
-    def __init__(self, model_name, pretrained=True, input_size=None, 
-                 learning_rate=0.001, verbose=True, num_classes=None):
+    def __init__(self, model_name, pretrained=True, input_size=None, learning_rate=0.001, verbose=True, num_classes=None):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
@@ -29,12 +28,12 @@ class DatingCNN(nn.Module):
             self.classification = False
             self.criterion = nn.MSELoss()
             self.final_activation = nn.Identity()
-            self.metrics = DatingMetrics()
         else:
             self.classification = True
-            self.criterion = nn.CrossEntropyLoss()
-            self.final_activation = nn.Sigmoid()
-            self.metrics = None
+            self.criterion = nn.NLLLoss()
+            self.final_activation = nn.LogSoftmax(dim=1) 
+        
+        self.metrics = DatingMetrics(classification=self.classification)
 
         if self.verbose:
             print("Model doing:", ("classification" if self.classification else "regression"))

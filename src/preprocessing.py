@@ -1,6 +1,6 @@
 
 import argparse
-from deep_dating.datasets import load_all_dating_datasets, SetType, DatasetSplitter, MPS, CLaMM, ScribbleLens
+from deep_dating.datasets import load_all_dating_datasets, SetType, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 
 
@@ -21,7 +21,7 @@ def preprocess_autoencoder():
     dataset = CLaMM()
     
     splitter = DatasetSplitter(dataset, test_size=0, val_size=0.2)
-    preprocessor = PreprocessRunner(dataset.name, name_add="_Set_Auto")
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Auto")
     preprocessor_func = ImageSplitter(plot=False).split
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
@@ -57,5 +57,7 @@ if __name__ == "__main__":
     #test_patch_extraction()
     #test()
     #preprocess(CLaMM())
-    preprocess_autoencoder()
+    #preprocess_autoencoder()
+    print(CLaMM_Test_Task3().size)
+    print(CLaMM_Test_Task4().size)
 

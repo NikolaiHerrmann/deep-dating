@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.preprocessing import PreprocessRunner
-from deep_dating.util import save_figure, to_one_hot
+from deep_dating.util import save_figure, to_index
 
 
 class DatingDataLoader(DataLoader):
@@ -11,8 +11,8 @@ class DatingDataLoader(DataLoader):
     def __init__(self, dataset_name, set_type, model, batch_size=32, shuffle=True, num_workers=7, preprocess_ext="_Set"):
         self.model_batch_size = batch_size
         self.dataset_name = dataset_name
-        super().__init__(self.PytorchDatingDataset(dataset_name, set_type, model, preprocess_ext), 
-                         batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+        self.torch_dataset = self.PytorchDatingDataset(dataset_name, set_type, model, preprocess_ext)
+        super().__init__(self.torch_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
         
     def test_loading(self):
         images, labels, _ = next(iter(self))
@@ -33,7 +33,10 @@ class DatingDataLoader(DataLoader):
             self.model = model
             self.X, self.y = PreprocessRunner(dataset_name, preprocess_ext).read_preprocessing_header(set_type)
             if self.model.classification:
-                self.y = to_one_hot(self.y)
+                self.y, self.y_unique = to_index(self.y)
+        
+        def decode_class(self, class_idxs):
+            return self.y_unique[class_idxs]
 
         def __getitem__(self, idx):
             img_path, img_date = self.X[idx], self.y[idx]
@@ -42,23 +45,3 @@ class DatingDataLoader(DataLoader):
         
         def __len__(self):
             return self.X.shape[0]
-
-
-
-
-
-# if __name__ == "__main__":
-#     from dating_patch_extraction import PatchExtractor, PatchMethod
-
-#     # for dataset in load_all_dating_datasets():
-#     #     print(dataset)
-
-#     mps = MPS()
-
-#     dp = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES)
-#     mps.process_files(dp.extract_patches, SetType.VAL)
-
-#     # pytorch_dataset = DatingDataLoader.PytorchDatingDataset(mps, SetType.VAL)
-#     # print(pytorch_dataset.X.shape, pytorch_dataset.y.shape)
-#     # print(pytorch_dataset.X)
-

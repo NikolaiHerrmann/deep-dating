@@ -49,9 +49,7 @@ class DatingTrainer:
     def _get_labels(self, model, labels, inputs):
         if model.model_type == ModelType.PATCH_CNN:
             labels = labels.to(self.device)
-            if not model.classification:
-                labels = labels.unsqueeze(1)
-            return labels
+            return torch.flatten(labels) if model.classification else labels.unsqueeze(1)
         elif model.model_type == ModelType.AUTOENCODER:
             return inputs
         
@@ -69,6 +67,18 @@ class DatingTrainer:
 
             fig.tight_layout()
             save_figure(f"example_{state}_epoch_{epoch}", fig=fig, fig_dir=self.exp_path, pdf=False)
+
+    def _detach(self, loader, model, outputs, labels):
+        labels_detach = labels.cpu().detach().numpy()
+        outputs_detach = outputs.cpu().detach().numpy()
+        
+        if model.model_type == ModelType.PATCH_CNN:
+            if model.classification:
+                class_idxs = np.argmax(outputs_detach, axis=1)  # get the index of the max log-probability
+                outputs_detach = loader.torch_dataset.decode_class(class_idxs)
+                labels_detach = loader.torch_dataset.decode_class(labels_detach)
+
+        return labels_detach, outputs_detach
 
     def train(self, model, train_loader, val_loader):
         self.metric_writer = MetricWriter(self.exp_path, model.metrics)
@@ -90,10 +100,10 @@ class DatingTrainer:
 
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
+                print(outputs)
                 loss = model.criterion(outputs, labels)
 
-                labels_detach = labels.cpu().detach().numpy()
-                outputs_detach = outputs.cpu().detach().numpy()
+                labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
 
                 self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach)
                 
@@ -114,8 +124,7 @@ class DatingTrainer:
                     outputs = model(inputs)
                     loss = model.criterion(outputs, labels)
 
-                    labels_detach = labels.cpu().detach().numpy()
-                    outputs_detach = outputs.cpu().detach().numpy()
+                    labels_detach, outputs_detach = self._detach(val_loader, model, outputs, labels)
 
                     self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach)
 

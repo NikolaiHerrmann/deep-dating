@@ -69,6 +69,7 @@ class Autoencoder(nn.Module):
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.MSELoss() #self.ssim_loss
         self.metrics = None
+        self.classification = False
 
     def ssim_loss(self, X, Y):
         return 100 * (1 - ssim(X, Y, data_range=255, size_average=True))
