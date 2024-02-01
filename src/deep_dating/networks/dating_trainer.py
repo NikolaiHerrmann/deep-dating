@@ -100,7 +100,6 @@ class DatingTrainer:
 
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
-                print(outputs)
                 loss = model.criterion(outputs, labels)
 
                 labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
