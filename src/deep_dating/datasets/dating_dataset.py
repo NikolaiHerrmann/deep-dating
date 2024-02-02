@@ -130,11 +130,22 @@ class CLaMM_Test_Task4(CLaMM_Test_Task3):
 class ScribbleLens(DatingDataset):
 
     def __init__(self, path=os.path.join("scribblelens.supplement.original.pages"),
-                 path_header=os.path.join("scribblelens.corpus.v1.2", "scribblelens.corpus.v1", "corpora"),
-                 start_bin_date=1595, bin_width=20):
+                 path_header=os.path.join("scribblelens.corpus.v1.2", "scribblelens.corpus.v1", "corpora")):
         self.path_header = path_header
-        self.start_bin_date = start_bin_date
-        self.bin_width = bin_width
+
+        self.bins = {1: (1598, 1602),
+                     2: (1611, 1631),
+                     3: (1634, 1637),
+                     4: (1641, 1642),
+                     5: (1653, 1693),
+                     6: (1721, 1726)}
+
+        # start_bin_date=1595, bin_width=20
+        # self.start_bin_date = start_bin_date
+        # self.bin_width = bin_width
+        self.class_range_mean = {}
+        for key, val in self.bins.items():
+            self.class_range_mean[key] = int(np.mean(val))
         self.writer_ids_per_date = {}
         super().__init__(path, DatasetName.SCRIBBLE)
 
@@ -224,32 +235,42 @@ class ScribbleLens(DatingDataset):
 
         return imgs_listed
     
-    def _calc_bins(self):
-        self.bins = []
-        self.bin_tokens = []
-        start_date = self.start_bin_date
-        max_date = np.max(self.date_ls)
+    # def _calc_bins(self):
+    #     self.bins = []
+    #     self.bin_tokens = []
+    #     start_date = self.start_bin_date
+    #     max_date = np.max(self.date_ls)
 
-        while start_date < max_date:
-            end_date = start_date + self.bin_width
-            self.bins.append((start_date, end_date))
-            self.bin_tokens.append(np.mean([start_date, end_date]))
-            start_date = end_date
+    #     while start_date < max_date:
+    #         end_date = start_date + self.bin_width
+    #         self.bins.append((start_date, end_date))
+    #         self.bin_tokens.append(np.mean([start_date, end_date]))
+    #         start_date = end_date
 
     def _apply_bins(self):
-        new_dates = np.zeros(self.date_ls.shape)
+        self.writer_ids_per_bin = {} #[date].add(writer_id)
 
-        for (start_date, end_date), token in zip(self.bins, self.bin_tokens):
-            idxs = np.where((self.date_ls >= start_date) & (self.date_ls < end_date))
+        new_dates = np.zeros(self.date_ls.shape)
+        date_np = np.array(self.date_ls)
+
+        for token, (start_date, end_date) in self.bins.items():
+            token = self.class_range_mean[token]
+
+            condition = (date_np >= start_date) & (date_np <= end_date)
+            idxs = np.where(condition)
+
+            count = 0
+            for date in np.unique(date_np[idxs]):
+                count += len(self.writer_ids_per_date[date])
+            self.writer_ids_per_bin[token] = count
+
             new_dates[idxs] = token
 
         return new_dates
     
     def _extract_img_dates(self):
         self.date_ls = np.array(self.date_ls)
-        # self._calc_bins()
-        # new_date_ls = self._apply_bins()
-        return self.date_ls
+        return self._apply_bins()
 
 
 def load_all_dating_datasets():

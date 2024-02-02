@@ -34,6 +34,9 @@ class DatasetSplitter:
             return self.X_train, self.y_train
         else:
             raise Exception("Unknown dataset type!")
+        
+    def get_summary(self):
+        return f"Train: {len(self.X_train)} \n Val: {len(self.X_val)} \n Test: {len(self.X_test)}"
 
     def _remove_low_count_samples(self):
         unique_dates, counts = np.unique(self.y, return_counts=True)

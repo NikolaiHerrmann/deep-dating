@@ -40,6 +40,7 @@ class DatingTrainer:
         if model.model_type == ModelType.PATCH_CNN:
             settings["starting_weights"] = model.starting_weights
             settings["classification"] = model.classification
+            settings["weight_decay"] = model.weight_decay
 
         json_object = json.dumps(settings, indent=4)
 

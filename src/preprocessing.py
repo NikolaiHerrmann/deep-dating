@@ -7,7 +7,7 @@ from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRun
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, 150, 150) #150 # 50
+    splitter = DatasetSplitter(dataset, 166, 166) #150 # 50
     preprocessor = PreprocessRunner(dataset.name)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES).extract_patches
 
@@ -55,9 +55,9 @@ if __name__ == "__main__":
 
     # if args.test:
     #test_patch_extraction()
-    #test()
-    #preprocess(CLaMM())
+    test()
+    preprocess_dating_cnn(ScribbleLens())
     #preprocess_autoencoder()
-    print(CLaMM_Test_Task3().size)
-    print(CLaMM_Test_Task4().size)
+    # print(CLaMM_Test_Task3().size)
+    # print(CLaMM_Test_Task4().size)
 
