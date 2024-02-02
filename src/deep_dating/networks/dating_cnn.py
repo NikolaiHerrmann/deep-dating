@@ -45,7 +45,7 @@ class DatingCNN(nn.Module):
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         #self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
-        self.optimizer = torch.optim.SGD(self.base_model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
+        self.optimizer = torch.optim.SGD(self.base_model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=0.9)
         
         self.transforms = transforms.Compose([transforms.ToTensor(),
                                               transforms.Resize(self.input_size, antialias=True),
