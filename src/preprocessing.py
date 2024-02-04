@@ -1,20 +1,23 @@
 
-import argparse
+import os
 from deep_dating.datasets import load_all_dating_datasets, SetType, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
-
+from deep_dating.util import DATASETS_PATH
 
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, 166, 166) #150 # 50
+    splitter = DatasetSplitter(dataset, 166, 166, test_size=0, val_size=0.1) #150 # 50
     preprocessor = PreprocessRunner(dataset.name)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES).extract_patches
 
     for set_type in [SetType.TRAIN, SetType.VAL, SetType.TEST]:
         X, y = splitter.get_data(set_type)
-        preprocessor.run(X, y, set_type, preprocessing_func)
-        print("Patch extraction done for", set_type)
+        if X is not None:
+            preprocessor.run(X, y, set_type, preprocessing_func)
+            print("Patch extraction done for", set_type)
+        else:
+            print("Skipping", set_type)
 
 
 def preprocess_autoencoder():
@@ -56,7 +59,7 @@ if __name__ == "__main__":
     # if args.test:
     #test_patch_extraction()
     test()
-    preprocess_dating_cnn(ScribbleLens())
+    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)

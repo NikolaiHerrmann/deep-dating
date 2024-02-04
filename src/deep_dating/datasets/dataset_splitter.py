@@ -26,14 +26,17 @@ class DatasetSplitter:
         self._make_split()
 
     def get_data(self, set_type):
-        if set_type == SetType.TEST:
+        if set_type == SetType.TEST and self.test_size > 0:
             return self.X_test, self.y_test
-        elif set_type == SetType.VAL:
+        elif set_type == SetType.VAL and self.val_size > 0:
             return self.X_val, self.y_val
         elif set_type == SetType.TRAIN:
             return self.X_train, self.y_train
-        else:
-            raise Exception("Unknown dataset type!")
+        
+        if self.verbose:
+            print(f"Dataset type: {set_type} not implemented.")
+
+        return None, None
         
     def get_summary(self):
         return f"Train: {len(self.X_train)} \n Val: {len(self.X_val)} \n Test: {len(self.X_test)}"
