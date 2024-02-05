@@ -6,6 +6,7 @@ import torch
 import cv2
 import torch.nn as nn
 from torchvision import transforms
+from torchsummary import summary
 import timm
 
 
@@ -90,3 +91,6 @@ class DatingCNN(nn.Module):
     def apply_transforms(self, img):
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return self.transforms(img)
+    
+    def summary(self):
+        summary(self.base_model, (3, self.input_size, self.input_size))

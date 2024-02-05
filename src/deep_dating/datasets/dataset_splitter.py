@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 class DatasetSplitter:
 
     def __init__(self, dataset, min_count=None, max_count=None, min_removal_count=5, 
-                 test_size=0.3, val_size=0.2, verbose=True):
+                 test_size=0.3, val_size=0.2, test_run=False, verbose=True):
         self.X = dataset.X
         self.y = dataset.y
         self.aug_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_Aug")
@@ -20,6 +20,7 @@ class DatasetSplitter:
         self.min_removal_count = min_removal_count
         self.test_size = test_size
         self.val_size = val_size
+        self.test_run = test_run
         self.verbose = verbose
 
         self._remove_low_count_samples()
@@ -61,7 +62,7 @@ class DatasetSplitter:
         y_new = []
         total_aug = 0
         total_img = 0
-        augment_runner = ImageMorphRunner()
+        augment_runner = ImageMorphRunner(test_run=self.test_run, verbose=self.verbose)
 
         for label, count in tqdm(zip(unique_labels, counts), disable = not self.verbose, total=len(counts)):
             label_idxs = np.where(y == label)[0]

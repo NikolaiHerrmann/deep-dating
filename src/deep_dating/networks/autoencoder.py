@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchvision import transforms
 from torchsummary import summary
 from pytorch_msssim import ssim
-from deep_dating.networks import ModelType
+#from deep_dating.networks import ModelType
 
 
 class Autoencoder(nn.Module):
@@ -14,7 +14,7 @@ class Autoencoder(nn.Module):
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
-        self.model_type = ModelType.AUTOENCODER
+        #self.model_type = ModelType.AUTOENCODER
         self.input_size = input_size
 
         self.encoder = nn.Sequential(
@@ -28,16 +28,16 @@ class Autoencoder(nn.Module):
             nn.ReLU(),
             nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-            nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(131072, 512)
+            #nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1),
+            #nn.ReLU(),
+            #nn.Flatten(),
+            #nn.Linear(131072, 512)
         )
         
         self.decoder = nn.Sequential(
-            nn.Linear(512, 131072),
-            nn.ReLU(),
-            nn.Unflatten(1, (512, 16, 16)),
+            #nn.Linear(512, 131072),
+            #nn.ReLU(),
+            #nn.Unflatten(1, (512, 16, 16)),
 
             # nn.Upsample(scale_factor=2, mode="nearest"),
             # nn.Conv2d(256, 128, kernel_size=3, padding=1),
@@ -48,8 +48,8 @@ class Autoencoder(nn.Module):
             # nn.Upsample(scale_factor=2, mode="nearest"),
             # nn.Conv2d(64, 32, kernel_size=3, padding=1),
             # nn.ReLU(),
-            nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
+            # nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
+            # nn.ReLU(),
             nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
             # nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
@@ -89,9 +89,13 @@ class Autoencoder(nn.Module):
     
     def save(self, path):
         torch.save(self.state_dict(), path)
+
+    def summary(self):
+        summary(self.encoder, (1, self.input_size, self.input_size))
+        summary(self.decoder, (256, 32, 32))
     
 
 if __name__ == "__main__":
     ac = Autoencoder()
-    print(summary(ac.encoder, (1, 512, 512)))
-    print(summary(ac.decoder, (512,)))
+    ac.summary()
+    

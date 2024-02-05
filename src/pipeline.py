@@ -10,7 +10,7 @@ from matplotlib import cm, colors
 from deep_dating.networks import DatingCNN
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
 from deep_dating.datasets import MPS, ScribbleLens, CLaMM, DatasetSplitter, SetType
-from deep_dating.util import save_figure, plt_clear
+from deep_dating.util import save_figure, plt_clear, to_index
 from tqdm import tqdm
 
 
@@ -95,8 +95,8 @@ def make_map(patch_extractor, patches, model):
         saliency_map[y:y+h, x:x+w] = np.maximum(patch_map, saliency_map[y:y+h, x:x+w])
 
     plt_clear()
-    fig, ax = plt.subplots(2, 1)
-    ax[0].imshow(patch_extractor.img_org)
+    fig, ax = plt.subplots(1, 2)
+    ax[0].imshow(patch_extractor.img, cmap="gray")
     
     color = "blue"
     x, y, _, _ = patch_drawing_info[0]
@@ -112,10 +112,16 @@ def make_map(patch_extractor, patches, model):
     return outputs
 
 
+# self.y, self.y_unique = to_index(self.y)
+        
+#         def decode_class(self, class_idxs):
+#             return self.y_unique[class_idxs]
+
+
 def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True, make_saliency_map=True):
 
-    model_path = "runs/Jan9-13-59-8/model_epoch_29.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
-    model = DatingCNN("inception_resnet_v2", verbose=False)
+    model_path = "runs/Feb2-12-2-23/model_epoch_5.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" #"runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
+    model = DatingCNN("inception_resnet_v2", verbose=False, num_classes=6)
     model.load(model_path, continue_training=False)
     
     patch_extractor = PatchExtractor(plot=plot, method=PatchMethod.SLIDING_WINDOW_LINES)
@@ -128,7 +134,15 @@ def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True,
         patches = torch.from_numpy(np.array(patches))
 
         output = model(patches)
-        output = output.cpu().detach().numpy().flatten()
+        output = output.cpu().detach().numpy()
+
+        if model.classification:
+            class_idxs = np.argmax(output, axis=1)
+            _, labels_unique = to_index(y)
+            output = labels_unique[class_idxs]
+            print(output)
+        else:
+            output = output.flatten()
     
     output = np.round(output).astype(int)
     final_prediction = int(np.round(agg_func(output)))
@@ -140,12 +154,13 @@ def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True,
 
 
 def run_over_dataset(dataset, set_type=SetType.VAL):
+    global y
     x, y = DatasetSplitter(dataset).get_data(set_type)
     data = list(zip(x, y))
     random.shuffle(data)
     random.shuffle(data)
     for img_file, label in data:
-        run_patch_pipeline(img_file, true_label=label)
+        run_patch_pipeline(img_file, true_label=label, make_saliency_map=False)
 
 
 if __name__ =="__main__":

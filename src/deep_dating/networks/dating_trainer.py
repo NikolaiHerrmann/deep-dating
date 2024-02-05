@@ -2,6 +2,7 @@
 import os
 import torch
 import json
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -47,6 +48,17 @@ class DatingTrainer:
         with open(os.path.join(self.exp_path, "settings.json"), "w") as f:
             f.write(json_object)
 
+    def _write_architecture(self, model):
+        stdout_old = sys.stdout
+
+        with open(os.path.join(self.exp_path, "architecture.txt"), "w") as sys.stdout:
+            print("Torch summary")
+            model.summary()
+            print("---- Direct Print ----")
+            print(model)
+
+        sys.stdout = stdout_old
+
     def _get_labels(self, model, labels, inputs):
         if model.model_type == ModelType.PATCH_CNN:
             labels = labels.to(self.device)
@@ -84,6 +96,7 @@ class DatingTrainer:
     def train(self, model, train_loader, val_loader):
         self.metric_writer = MetricWriter(self.exp_path, model.metrics)
         self._write_training_settings(model, train_loader)
+        self._write_architecture(model)
         
         model.to(self.device)
 
