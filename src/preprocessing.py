@@ -3,6 +3,7 @@ import os
 from deep_dating.datasets import load_all_dating_datasets, SetType, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.util import DATASETS_PATH
+import matplotlib.pyplot as plt
 
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
@@ -34,15 +35,17 @@ def preprocess_autoencoder():
 
 
 def test_patch_extraction():
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=False)
 
     #for dataset in load_all_dating_datasets():
     import random
-    x = CLaMM().X
+    x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
     random.shuffle(x)
     for file in x:
         dp.extract_patches(file)
-        dp.save_plot(show=True)
+        plt.imshow(dp.img_bin, cmap="gray")
+        plt.show()
+        #dp.save_plot(show=True)
             #break
 
 
@@ -58,9 +61,10 @@ if __name__ == "__main__":
 
     # if args.test:
     #test_patch_extraction()
-    test()
-    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+    #test()
+    #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
+    test_patch_extraction()
 
