@@ -35,17 +35,17 @@ def preprocess_autoencoder():
 
 
 def test_patch_extraction():
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=False)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True, drop_out_rate=0.4)
 
     #for dataset in load_all_dating_datasets():
     import random
-    x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
-    random.shuffle(x)
+    x = MPS().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    #random.shuffle(x)
     for file in x:
         dp.extract_patches(file)
-        plt.imshow(dp.img_bin, cmap="gray")
-        plt.show()
-        #dp.save_plot(show=True)
+        # plt.imshow(dp.img_bin, cmap="gray")
+        # plt.show()
+        dp.save_plot(show=True)
             #break
 
 

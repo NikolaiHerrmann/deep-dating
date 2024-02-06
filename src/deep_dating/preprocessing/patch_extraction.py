@@ -20,7 +20,7 @@ class PatchExtractor:
     def __init__(self, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, 
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size_for_random=256, calc_pixel_overlap=True,
-                 rm_white_pixel_ratio=0.98):
+                 rm_white_pixel_ratio=0.98, drop_out_rate=0.6):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
@@ -30,6 +30,7 @@ class PatchExtractor:
         self.patch_size = patch_size_for_random
         self.calc_pixel_overlap = calc_pixel_overlap
         self.rm_white_pixel_ratio = rm_white_pixel_ratio
+        self.drop_out_rate = drop_out_rate
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
@@ -179,10 +180,20 @@ class PatchExtractor:
         x = x_init
         y = y_init
 
+        # Randomly filter out n% of images
+        num_patches = y_n * x_n
+        num_patches_with_drop_out = np.round(num_patches * (1 - self.drop_out_rate)).astype(int)
+        valid_patch_idxs = np.random.choice(num_patches, size=num_patches_with_drop_out, replace=False).tolist()
+        idx_1d = 0
+
         for _ in range(y_n):
             for _ in range(x_n):
-                patch = self.img[y:y+self.patch_size, x:x+self.patch_size]
-                self._append_patch(patch, x, y)
+                
+                if idx_1d in valid_patch_idxs:
+                    patch = self.img[y:y+self.patch_size, x:x+self.patch_size]
+                    self._append_patch(patch, x, y)
+                
+                idx_1d += 1
 
                 x += self.overlap_patch_size
             x = x_init
