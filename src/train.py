@@ -1,10 +1,16 @@
 
-from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
+import os
+from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal, CLaMM
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
+from deep_dating.util import DATASETS_PATH
+from preprocessing import preprocess_autoencoder
 
 
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
+
+    preprocess_autoencoder(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+
     cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
     trainer = DatingTrainer(num_epochs=100, patience=10)
     n_splits = 1

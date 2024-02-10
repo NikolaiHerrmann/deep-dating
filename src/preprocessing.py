@@ -21,8 +21,8 @@ def preprocess_dating_cnn(dataset):
             print("Skipping", set_type)
 
 
-def preprocess_autoencoder():
-    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+def preprocess_autoencoder(dataset):
+    #dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     
     splitter = DatasetSplitter(dataset, 75, 350, test_size=0)
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_Auto")
@@ -39,7 +39,7 @@ def test_patch_extraction():
 
     #for dataset in load_all_dating_datasets():
     import random
-    x = MPS().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    x = CLaMM().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
     #random.shuffle(x)
     for file in x:
         dp.extract_patches(file)
