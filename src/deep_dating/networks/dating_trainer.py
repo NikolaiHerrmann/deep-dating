@@ -42,6 +42,8 @@ class DatingTrainer:
             settings["starting_weights"] = model.starting_weights
             settings["classification"] = model.classification
             settings["weight_decay"] = model.weight_decay
+            if model.classification:
+                settings["classes"] = loader.torch_dataset.get_class_dict()
 
         json_object = json.dumps(settings, indent=4)
 
@@ -93,10 +95,12 @@ class DatingTrainer:
 
         return labels_detach, outputs_detach
 
-    def train(self, model, train_loader, val_loader):
+    def train(self, model, train_loader, val_loader, split):
         self.metric_writer = MetricWriter(self.exp_path, model.metrics)
-        self._write_training_settings(model, train_loader)
-        self._write_architecture(model)
+
+        if split == 0:
+            self._write_training_settings(model, train_loader)
+            self._write_architecture(model)
         
         model.to(self.device)
 
@@ -115,6 +119,7 @@ class DatingTrainer:
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = model.criterion(outputs, labels)
+                print(loss)
 
                 labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
 

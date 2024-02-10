@@ -17,6 +17,20 @@ class DatingPredictor:
         with open(path, "rb") as f:
             predictions = pickle.load(f)
         return predictions
+    
+    def _format_output_and_labels(self, model, loader, outputs, labels):
+        outputs_detach = outputs.cpu().detach().numpy()
+
+        if model.classification:
+            class_idxs = np.argmax(outputs_detach, axis=1)  # get the index of the max log-probability
+            outputs_detach = loader.torch_dataset.decode_class(class_idxs)
+
+            labels_detach = torch.flatten(labels)
+            labels_detach = loader.torch_dataset.decode_class(labels_detach)
+        else:
+            labels_detach = labels.unsqueeze(1)
+
+        return outputs_detach, labels_detach
 
     def predict(self, model, data_loader, save_path=None, check_loading=True):
         all_outputs = []
@@ -36,9 +50,8 @@ class DatingPredictor:
 
                 inputs = inputs.to(self.device)
                 outputs = model(inputs)
-                outputs = outputs.cpu().detach().numpy()
-
-                labels = labels.unsqueeze(1)
+                
+                outputs, labels = self._format_output_and_labels(model, data_loader, outputs, labels)
 
                 all_outputs.append(outputs)
                 all_labels.append(labels)

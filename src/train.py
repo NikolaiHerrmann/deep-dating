@@ -1,19 +1,24 @@
 
-from deep_dating.datasets import DatasetName, DatingDataLoader, SetType
+from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
 
 
 def train_dating_cnn():
-    model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
-    #model.load("runs/Jan6-22-21-16/model_epoch_28.pt", continue_training=True)
-    trainer = DatingTrainer(num_epochs=100, patience=15)
-
     dataset = DatasetName.CLAMM
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
+    trainer = DatingTrainer(num_epochs=100, patience=10)
+    n_splits = 1
 
-    train_loader = DatingDataLoader(dataset, SetType.TRAIN, model)
-    val_loader = DatingDataLoader(dataset, SetType.VAL, model)
+    for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
+        print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-    trainer.train(model, train_loader, val_loader)
+        model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
+        #model.load("runs/Feb9-12-7-17/model_epoch_0.pt", continue_training=True)
+        
+        train_loader = DatingDataLoader(dataset, X_train, y_train, model)
+        val_loader = DatingDataLoader(dataset, X_val, y_val, model)
+
+        trainer.train(model, train_loader, val_loader, i)
 
 def train_autoencoder():
     model = Autoencoder()

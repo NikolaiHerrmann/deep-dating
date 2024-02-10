@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, 166, 166, test_size=0, val_size=0.1) #150 # 50
+    splitter = DatasetSplitter(dataset, None, None) #150 # 50
     preprocessor = PreprocessRunner(dataset.name)
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES).extract_patches
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=8).extract_patches
 
-    for set_type in [SetType.TRAIN, SetType.VAL, SetType.TEST]:
+    for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
         if X is not None:
             preprocessor.run(X, y, set_type, preprocessing_func)
@@ -22,9 +22,9 @@ def preprocess_dating_cnn(dataset):
 
 
 def preprocess_autoencoder():
-    dataset = CLaMM()
+    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     
-    splitter = DatasetSplitter(dataset, test_size=0, val_size=0.2)
+    splitter = DatasetSplitter(dataset, 75, 350, test_size=0)
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_Auto")
     preprocessor_func = ImageSplitter(plot=False).split
 
@@ -35,7 +35,7 @@ def preprocess_autoencoder():
 
 
 def test_patch_extraction():
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True, drop_out_rate=0.4)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True, drop_out_rate=0, num_lines_per_patch=8)
 
     #for dataset in load_all_dating_datasets():
     import random
@@ -50,8 +50,8 @@ def test_patch_extraction():
 
 
 def test():
-    d = ScribbleLens()
-    print(d.writer_ids_per_date)
+    c = CLaMM()
+    c.save_to_dir(os.path.join(DATASETS_PATH, "clamm_visual"))
 
 
 if __name__ == "__main__":
@@ -66,5 +66,8 @@ if __name__ == "__main__":
     #preprocess_autoencoder()
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
-    test_patch_extraction()
+    #test_patch_extraction()
+    #test()
+    #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+    preprocess_autoencoder()
 

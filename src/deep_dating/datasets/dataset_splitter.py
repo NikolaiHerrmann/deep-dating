@@ -68,7 +68,7 @@ class DatasetSplitter:
             label_idxs = np.where(y == label)[0]
             
             # undersample
-            if count > self.max_count:
+            if self.max_count and (count > self.max_count):
                 label_idxs = np.random.choice(label_idxs, size=self.max_count, replace=False)
                 assert label_idxs.shape[0] == self.max_count
 
@@ -77,7 +77,7 @@ class DatasetSplitter:
             total_img += label_idxs.shape[0]
 
             # oversample with augmentation
-            if count < self.min_count:
+            if self.min_count and (count < self.min_count):
                 n_missing = self.min_count - count
                 
                 # repeat each sample n times
@@ -129,7 +129,7 @@ class DatasetSplitter:
         (self.X_train, self.X_val,
          self.y_train, self.y_val) = self._split_data(self.X_train_org, self.y_train_org, self.val_size)
         
-        if self.min_count and self.max_count:
+        if self.min_count or self.max_count:
             os.makedirs(self.aug_path, exist_ok=True)
             self.X_train, self.y_train = self._balance_data(self.X_train, self.y_train)
         

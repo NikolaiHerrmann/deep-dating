@@ -4,6 +4,8 @@ import re
 import glob
 import numpy as np
 import pandas as pd
+import shutil
+from tqdm import tqdm
 from deep_dating.datasets import DatasetName
 from deep_dating.util import DATASETS_PATH
 from abc import ABC, abstractmethod
@@ -47,6 +49,25 @@ class DatingDataset(ABC):
                 print("Warning! File list found in header does not entirely",
                       f"match images found in directory. {len(diff)} image",
                       f"inconsistencies found.\n\tDifferences found: {diff}")
+
+    def save_to_dir(self, save_dir):
+        unique_dates = np.unique(self.y)
+
+        def save_date(date):
+            date_dir_path = os.path.join(save_dir, str(date.astype(int)))
+            os.mkdir(date_dir_path)
+
+            idxs = np.where(self.y == date)[0]
+            img_paths = self.X[idxs]
+
+            for path in img_paths:
+                img_name = os.path.basename(path)
+                shutil.copy(path, os.path.join(date_dir_path, img_name))
+
+        os.mkdir(save_dir)
+
+        for date in tqdm(unique_dates):
+            save_date(date)
 
 
 class MPS(DatingDataset):
