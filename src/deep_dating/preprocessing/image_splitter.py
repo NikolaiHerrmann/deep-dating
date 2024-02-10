@@ -47,11 +47,6 @@ class ImageSplitter:
         self.img_org = cv2.imread(img_path)
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
 
-        img = cv2.resize(self.img, (299, 299), interpolation=cv2.INTER_AREA)
-        plt.imshow(img, cmap="gray")
-        plt.show()
-        return
-
         self._calc_dim()
 
         self._calc_ratio()
@@ -113,4 +108,5 @@ if __name__ == "__main__":
     imgs = glob.glob("../../../../datasets/ICDAR2017_CLaMM_Training/*.tif")
     for path in imgs:
         image_splitter.split(path)
+        plt.show()
     
