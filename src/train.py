@@ -9,7 +9,7 @@ from preprocessing import preprocess_autoencoder
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
-    preprocess_autoencoder(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+    #preprocess_autoencoder(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
     trainer = DatingTrainer(num_epochs=100, patience=10)

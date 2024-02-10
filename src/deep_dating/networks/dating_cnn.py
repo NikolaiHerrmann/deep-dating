@@ -93,4 +93,5 @@ class DatingCNN(nn.Module):
         return self.transforms(img)
     
     def summary(self):
-        summary(self.base_model, (3, self.input_size, self.input_size))
+        #summary(self.base_model, (3, self.input_size, self.input_size))
+        pass
