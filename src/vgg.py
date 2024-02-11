@@ -12,7 +12,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import pickle
 
-device = get_torch_device()
+device = get_torch_device(verbose=True)
 
 model_transforms = transforms.Compose([transforms.ToTensor(),
                                        transforms.Resize(256, antialias=True),
@@ -39,6 +39,8 @@ def extract_features(data_loader, set_type, model):
     all_labels = []
     all_paths = []
 
+    model.to(device)
+
     with torch.no_grad():
         for inputs, labels, paths in tqdm(data_loader):
             # plt.imshow(inputs[0, :].detach().numpy().transpose(1, 2, 0))
@@ -50,7 +52,6 @@ def extract_features(data_loader, set_type, model):
             # print(np.sum(outputs[0, :].detach().numpy()))
             # print(outputs.shape)
             # exit()
-
             all_outputs.append(outputs.cpu().detach().numpy())
             all_labels.append(labels)
             all_paths += list(paths)
