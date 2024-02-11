@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import pickle
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 device = get_torch_device(verbose=True)
 
