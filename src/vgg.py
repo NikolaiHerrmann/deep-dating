@@ -69,5 +69,5 @@ if __name__ == "__main__":
     model.classifier = model.classifier[:-1]
     model.eval()
 
-    extract_features(train_loader, SetType.TRAIN, model)
-    extract_features(train_loader, SetType.VAL, model)
+    #extract_features(train_loader, SetType.TRAIN, model)
+    extract_features(val_loader, SetType.VAL, model)
