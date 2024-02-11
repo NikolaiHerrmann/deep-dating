@@ -60,6 +60,7 @@ class DatingCNN(nn.Module):
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                                    std=[0.229, 0.224, 0.225])])
         self.starting_weights = model_name if pretrained else None
+        self.feature_extractor = False
 
     def forward(self, x):
         return self.final_activation(self.base_model(x))
@@ -86,6 +87,7 @@ class DatingCNN(nn.Module):
         else:
             if use_as_feat_extractor:
                 self._discard_output_layer()
+                self.feature_extractor = True
             self.eval()
 
         if self.verbose:

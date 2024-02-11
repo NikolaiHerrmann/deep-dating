@@ -22,8 +22,9 @@ class DatingPredictor:
         outputs_detach = outputs.cpu().detach().numpy()
 
         if model.classification:
-            class_idxs = np.argmax(outputs_detach, axis=1)  # get the index of the max log-probability
-            outputs_detach = loader.torch_dataset.decode_class(class_idxs)
+            if not model.feature_extractor:
+                class_idxs = np.argmax(outputs_detach, axis=1)  # get the index of the max log-probability
+                outputs_detach = loader.torch_dataset.decode_class(class_idxs)
 
             labels_detach = torch.flatten(labels)
             labels_detach = loader.torch_dataset.decode_class(labels_detach)
