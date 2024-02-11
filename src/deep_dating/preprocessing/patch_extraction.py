@@ -20,7 +20,7 @@ class PatchExtractor:
     def __init__(self, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, 
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size_for_random=256, calc_pixel_overlap=True,
-                 rm_white_pixel_ratio=0.98, drop_out_rate=0.6):
+                 rm_white_pixel_ratio=0.98, drop_out_rate=0):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
