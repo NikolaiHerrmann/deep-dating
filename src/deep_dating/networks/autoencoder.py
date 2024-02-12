@@ -18,29 +18,29 @@ class Autoencoder(nn.Module):
         self.input_size = input_size
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
+            nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(128, 128, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(65536, 512)
+            nn.Linear(32768, 1024)
         )
         
         self.decoder = nn.Sequential(
-            nn.Linear(512, 65536),
+            nn.Linear(1024, 32768),
             nn.ReLU(),
-            nn.Unflatten(1, (256, 16, 16)),
+            nn.Unflatten(1, (128, 16, 16)),
             # nn.Upsample(scale_factor=2, mode="nearest"),
             # nn.Conv2d(128, 128, kernel_size=3, padding=1),
             # nn.BatchNorm2d(128),
@@ -71,21 +71,19 @@ class Autoencoder(nn.Module):
             # nn.ReLU(),
             # # nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
             # # nn.ReLU(),
-            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, output_padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, output_padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, output_padding=1),
             nn.BatchNorm2d(32),
-            # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            nn.ConvTranspose2d(16, 1, kernel_size=4, stride=2, padding=1, output_padding=1),
             nn.ReLU()
         )
 
@@ -115,7 +113,7 @@ class Autoencoder(nn.Module):
 
     def summary(self):
         # summary(self.encoder, (1, 512, 512))
-        # summary(self.decoder, (512,)) #(256, 32, 32)
+        # summary(self.decoder, (1024,)) #(256, 32, 32)
         pass
     
 
