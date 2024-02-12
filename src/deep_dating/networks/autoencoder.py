@@ -105,8 +105,9 @@ class Autoencoder(nn.Module):
         torch.save(self.state_dict(), path)
 
     def summary(self):
-        summary(self.encoder, (1, 512, 512))
-        summary(self.decoder, (512,)) #(256, 32, 32)
+        # summary(self.encoder, (1, 512, 512))
+        # summary(self.decoder, (512,)) #(256, 32, 32)
+        pass
     
 
 if __name__ == "__main__":
