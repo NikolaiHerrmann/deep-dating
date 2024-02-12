@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.preprocessing import PreprocessRunner
+from deep_dating.networks import ModelType
 from deep_dating.util import save_figure, to_index
 
 
@@ -43,9 +44,13 @@ class DatingDataLoader(DataLoader):
             return {idx : int(date) for idx, date in enumerate(self.y_unique)}
 
         def __getitem__(self, idx):
-            img_path, img_date = self.X[idx], self.y[idx]
+            img_path, y = self.X[idx], self.y[idx]
             img = self.model.transform_img(img_path)
-            return img, img_date, img_path
+
+            if self.model.model_type == ModelType.AUTOENCODER:
+                y = self.model.transform_img(y)
+
+            return img, y, img_path
         
         def __len__(self):
             return self.X.shape[0]

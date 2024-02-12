@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 
 class ImageSplitter:
 
-    def __init__(self, patch_size=512, force_size=True, plot=True):
+    def __init__(self, patch_size=512, binarize=False, force_size=True, plot=True):
         self.patch_size = patch_size
+        self.binarize = binarize
         self.force_size = force_size
         self.plot = plot
 
@@ -22,7 +23,7 @@ class ImageSplitter:
     def _pad_image(self, img, new_shape, extend_width, fill_value=0):
         height, width = img.shape
         new_height, new_width = new_shape
-        img_pad = np.zeros(new_shape)
+        img_pad = np.zeros(new_shape, dtype=np.uint8)
         img_pad.fill(fill_value)
 
         diff = new_width - width if extend_width else new_height - height
@@ -45,13 +46,15 @@ class ImageSplitter:
 
     def split(self, img_path):
         self.img_org = cv2.imread(img_path)
-        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
-
+        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)          
         self._calc_dim()
 
         self._calc_ratio()
         self.img = cv2.resize(self.img, (0, 0), fx=self.ratio, fy=self.ratio, interpolation=cv2.INTER_AREA)
         self._calc_dim() # re-calculate dimensions after resize
+
+        if self.binarize:
+            self.img = (255 - cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1])
 
         num_patches = int(np.ceil(self.max_dim / self.patch_size))
         new_dim = num_patches * self.patch_size
@@ -100,12 +103,15 @@ class ImageSplitter:
 
 
 if __name__ == "__main__":
-    image_splitter = ImageSplitter(plot=True)
+    image_splitter = ImageSplitter(plot=True, binarize=True)
     path = "../../../../datasets/ICDAR2017_CLaMM_Training/IRHT_P_001274.tif"
     #path = "../../../../datasets/MPS/Download/1550/MPS1550_0024.ppm"
     import glob
+    import random
 
     imgs = glob.glob("../../../../datasets/ICDAR2017_CLaMM_Training/*.tif")
+    #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    random.shuffle(imgs)
     for path in imgs:
         image_splitter.split(path)
         plt.show()

@@ -1,6 +1,8 @@
 
 import os
 import numpy as np
+import cv2
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from deep_dating.util import DATASETS_PATH
@@ -19,9 +21,10 @@ class PreprocessRunner:
         old_img_name = os.path.basename(img_path).rsplit(".", 1)[0]
         names = []
         for i, img in enumerate(imgs):
-            new_image_name = old_img_name + f"__{int(img_id)}_{int(img_date)}_p{i}.ppm"
+            new_image_name = old_img_name + f"__{int(img_id)}_{int(img_date)}_p{i}.png"
             file_name = os.path.join(self.save_path, new_image_name)
-            plt.imsave(file_name, img, cmap="gray")
+            #plt.imsave(file_name, img, cmap="gray")
+            cv2.imwrite(file_name, img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
             names.append((file_name, img_date))
         return names
     

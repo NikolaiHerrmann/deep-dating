@@ -28,17 +28,27 @@ def train_dating_cnn():
         trainer.train(model, train_loader, val_loader, i)
 
 def train_autoencoder():
-    model = Autoencoder()
-    trainer = DatingTrainer(patience=50)
-
     dataset = DatasetName.CLAMM
 
-    train_loader = DatingDataLoader(dataset, SetType.TRAIN, model, preprocess_ext="_Set_Auto")
-    val_loader = DatingDataLoader(dataset, SetType.VAL, model, preprocess_ext="_Set_Auto")
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
+    cross_val_bin = CrossVal(dataset, preprocess_ext="_Set_Auto_Bin")
+    trainer = DatingTrainer(patience=20)
 
-    trainer.train(model, train_loader, val_loader)
+    n_splits = 1
+
+    for i in range(n_splits):
+        print(f" -- Running split: {i+1}/{n_splits} -- ")
+
+        (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=n_splits))
+        (X_train_bin, y_train_bin, X_val_bin, y_val_bin) = next(cross_val_bin.get_split(n_splits=n_splits))      
+
+        model = Autoencoder()
+        train_loader = DatingDataLoader(dataset, X_train, X_train_bin, model)
+        val_loader = DatingDataLoader(dataset, X_val, X_val_bin, model)
+
+        trainer.train(model, train_loader, val_loader, i)
 
 
 if __name__ == "__main__":
-    train_dating_cnn()
-    #train_autoencoder()
+    #train_dating_cnn()
+    train_autoencoder()

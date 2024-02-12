@@ -21,17 +21,21 @@ def preprocess_dating_cnn(dataset):
             print("Skipping", set_type)
 
 
-def preprocess_autoencoder(dataset):
-    #dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    
-    splitter = DatasetSplitter(dataset, 75, 350, test_size=0)
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Auto")
-    preprocessor_func = ImageSplitter(plot=False).split
+def preprocess_autoencoder():
+    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    splitter = DatasetSplitter(dataset, None, None, test_size=0)
 
-    for set_type in [SetType.TRAIN, SetType.VAL]:
-        X, y = splitter.get_data(set_type)
-        preprocessor.run(X, y, set_type, preprocessor_func)
-        print("Image splitting done for", set_type)
+    for i in range(2):
+        binarize = i == 1
+        name_ext = "_Bin" if binarize else ""
+
+        preprocessor = PreprocessRunner(dataset.name, ext=("_Set_Auto" + name_ext))
+        preprocessor_func = ImageSplitter(plot=False, binarize=binarize).split
+
+        for set_type in [SetType.TRAIN, SetType.VAL]:
+            X, y = splitter.get_data(set_type)
+            preprocessor.run(X, y, set_type, preprocessor_func)
+            print("Image splitting done for", set_type)
 
 
 def test_patch_extraction():
@@ -69,6 +73,6 @@ if __name__ == "__main__":
     #test_patch_extraction()
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
-    #preprocess_autoencoder()
-    preprocess_dating_cnn(MPS())
+    preprocess_autoencoder()
+    #preprocess_dating_cnn(MPS())
 

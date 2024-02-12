@@ -62,11 +62,14 @@ class DatingTrainer:
         sys.stdout = stdout_old
 
     def _get_labels(self, model, labels, inputs):
+        labels = labels.to(self.device)
+
         if model.model_type == ModelType.PATCH_CNN:
-            labels = labels.to(self.device)
-            return torch.flatten(labels) if model.classification else labels.unsqueeze(1)
-        elif model.model_type == ModelType.AUTOENCODER:
-            return inputs
+            labels = torch.flatten(labels) if model.classification else labels.unsqueeze(1)
+        # elif model.model_type == ModelType.AUTOENCODER:
+        #     return labels
+            
+        return labels
         
     def _save_example(self, epoch, state, model, inputs, outputs):
         if model.model_type == ModelType.AUTOENCODER:
@@ -113,13 +116,13 @@ class DatingTrainer:
 
             for inputs, labels, paths in tqdm(train_loader, disable = not self.verbose):
 
-                inputs = inputs.to(self.device)
                 labels = self._get_labels(model, labels, inputs) #labels.to(self.device).unsqueeze(1)
+                inputs = inputs.to(self.device)
 
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = model.criterion(outputs, labels)
-                #print(loss)
+                print(loss)
 
                 labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
 
