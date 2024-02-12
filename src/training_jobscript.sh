@@ -16,4 +16,4 @@ module load scikit-learn/0.24.1-foss-2022a
 module load OpenCV/4.6.0-foss-2022a-contrib
 module load scikit-image/0.19.3-foss-2022a
 
-python3 predict.py
+python3 train.py
