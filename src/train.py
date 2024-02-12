@@ -28,6 +28,9 @@ def train_dating_cnn():
         trainer.train(model, train_loader, val_loader, i)
 
 def train_autoencoder():
+    
+    preprocess_autoencoder()
+
     dataset = DatasetName.CLAMM
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
