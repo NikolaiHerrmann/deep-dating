@@ -29,7 +29,7 @@ def train_dating_cnn():
 
 def train_autoencoder():
     
-    preprocess_autoencoder()
+    #preprocess_autoencoder()
 
     dataset = DatasetName.CLAMM
 

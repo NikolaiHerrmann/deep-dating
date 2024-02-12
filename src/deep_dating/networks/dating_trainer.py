@@ -71,17 +71,19 @@ class DatingTrainer:
             
         return labels
         
-    def _save_example(self, epoch, state, model, inputs, outputs):
+    def _save_example(self, epoch, state, model, inputs, outputs, labels):
         if model.model_type == ModelType.AUTOENCODER:
-            fig, axs = plt.subplots(1, 2)
+            fig, axs = plt.subplots(1, 3)
 
             batch_size = inputs.shape[0]
             rand_idx = np.random.randint(0, batch_size, size=1)
 
             axs[0].imshow(inputs[rand_idx, :][0, 0, :], cmap="gray")
             axs[0].set_title("Input")
-            axs[1].imshow(outputs[rand_idx, :][0, 0, :], cmap="gray")
-            axs[1].set_title("Reconstruction")
+            axs[1].imshow(labels[rand_idx, :][0, 0, :], cmap="gray")
+            axs[1].set_title("Label")
+            axs[2].imshow(outputs[rand_idx, :][0, 0, :], cmap="gray")
+            axs[2].set_title("Reconstruction")
 
             fig.tight_layout()
             save_figure(f"example_{state}_epoch_{epoch}", fig=fig, fig_dir=self.exp_path, pdf=False)
@@ -122,7 +124,6 @@ class DatingTrainer:
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = model.criterion(outputs, labels)
-                print(loss)
 
                 labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
 
@@ -131,7 +132,7 @@ class DatingTrainer:
                 loss.backward()
                 model.optimizer.step()
 
-            self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach)
+            self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
             mean_train_loss = self.metric_writer.mark_epoch(epoch)
             model.eval()
             self.metric_writer.eval()
@@ -147,7 +148,7 @@ class DatingTrainer:
 
                     labels_detach, outputs_detach = self._detach(val_loader, model, outputs, labels)
 
-                    self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach)
+                    self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach, labels_detach)
 
             self._save_example(epoch, "val", model, inputs.cpu().detach().numpy(), outputs_detach)
             mean_val_loss = self.metric_writer.mark_epoch(epoch)

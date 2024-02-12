@@ -19,40 +19,43 @@ class Autoencoder(nn.Module):
 
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(32),
+            #nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(64),
+            #nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(128),
+            #nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
+            #nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Flatten(),
-            nn.Linear(131072, 512)
+            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1),
+            #nn.BatchNorm2d(128),
+            nn.ReLU(),
+            #nn.Flatten(),
+            #nn.Linear(131072, 512)
         )
         
         self.decoder = nn.Sequential(
-            nn.Linear(512, 131072),
-            nn.ReLU(),
-            nn.Unflatten(1, (128, 32, 32)),
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            nn.Conv2d(128, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            nn.Conv2d(32, 1, kernel_size=3, padding=1),
-            nn.Tanh()
+            # nn.Linear(512, 131072),
+            # nn.ReLU(),
+            # nn.Unflatten(1, (128, 32, 32)),
+            # nn.Upsample(scale_factor=2, mode="nearest"),
+            # nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            # nn.BatchNorm2d(128),
+            # nn.ReLU(),
+            # nn.Upsample(scale_factor=2, mode="nearest"),
+            # nn.Conv2d(128, 64, kernel_size=3, padding=1),
+            # nn.BatchNorm2d(64),
+            # nn.ReLU(),
+            # nn.Upsample(scale_factor=2, mode="nearest"),
+            # nn.Conv2d(64, 32, kernel_size=3, padding=1),
+            # nn.BatchNorm2d(32),
+            # nn.ReLU(),
+            # nn.Upsample(scale_factor=2, mode="nearest"),
+            # nn.Conv2d(32, 1, kernel_size=3, padding=1),
+            # nn.Tanh()
 
 
 
@@ -68,16 +71,18 @@ class Autoencoder(nn.Module):
             # nn.ReLU(),
             # # nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
             # # nn.ReLU(),
-            # nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             # nn.ReLU(),
-            # nn.ConvTranspose2d(64, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU(),
-            # nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU(),
-            # # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # # nn.ReLU(),
-            # nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU()
+            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.Tanh()
         )
 
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
