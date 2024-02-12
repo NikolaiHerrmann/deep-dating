@@ -21,6 +21,7 @@ class DatingTrainer:
         self.verbose = verbose
         self.device = get_torch_device(verbose)
         self.early_stopper = EarlyStopper(patience)
+        self.best_model = None
 
     def _init_save_dir(self):
         os.makedirs(self.save_path, exist_ok=True)
@@ -133,6 +134,7 @@ class DatingTrainer:
                 
                 loss.backward()
                 model.optimizer.step()
+                model.scheduler.step()
 
             self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
             mean_train_loss = self.metric_writer.mark_epoch(epoch)
@@ -161,8 +163,11 @@ class DatingTrainer:
             if save_model:
                 path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
                 #model.save(path)
+                self.best_model = (path, self.model.get_state())
                 print("not saving")
             if stop:
                 if self.verbose:
                     print("Stopping early!")
+                model.save_state(self.best_model[0], self.best_model[1])
+                print("saved model")
                 break

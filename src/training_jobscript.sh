@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=1:00:00
+#SBATCH --time=2:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --output=job-%j.log
 #SBATCH --mem=12G

@@ -1,6 +1,7 @@
 
 import cv2
 import torch
+import copy
 import torch.nn as nn
 from torchvision import transforms
 from torchsummary import summary
@@ -34,43 +35,14 @@ class Autoencoder(nn.Module):
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(32768, 1024)
+            nn.Linear(32768, 512)
         )
         
         self.decoder = nn.Sequential(
-            nn.Linear(1024, 32768),
+            nn.Linear(512, 32768),
             nn.ReLU(),
             nn.Unflatten(1, (128, 16, 16)),
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            # nn.BatchNorm2d(128),
-            # nn.ReLU(),
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(128, 64, kernel_size=3, padding=1),
-            # nn.BatchNorm2d(64),
-            # nn.ReLU(),
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            # nn.BatchNorm2d(32),
-            # nn.ReLU(),
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(32, 1, kernel_size=3, padding=1),
-            # nn.Tanh()
 
-
-
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(128, 64, kernel_size=3, padding=1),
-            # nn.ReLU(),
-            # nn.Upsample(scale_factor=2, mode="nearest"),
-            # nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            # nn.ReLU(),
-            # nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU(),
-            # nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # nn.ReLU(),
-            # # nn.ConvTranspose2d(128, 128, kernel_size=3, stride=2, padding=1, output_padding=1),
-            # # nn.ReLU(),
             nn.Upsample(scale_factor=2, mode="nearest"),
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(),
@@ -93,6 +65,7 @@ class Autoencoder(nn.Module):
 
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.MSELoss() #self.ssim_loss
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.metrics = None
         self.classification = False
 
@@ -115,9 +88,15 @@ class Autoencoder(nn.Module):
     def save(self, path):
         torch.save(self.state_dict(), path)
 
+    def get_state(self):
+        return copy.deepcopy(self.state_dict())
+    
+    def save_state(self, path, state):
+        torch.save(state, path)
+
     def summary(self):
         # summary(self.encoder, (1, 512, 512))
-        # summary(self.decoder, (1024,)) #(256, 32, 32)
+        # summary(self.decoder, (512,)) #(256, 32, 32)
         pass
     
 
