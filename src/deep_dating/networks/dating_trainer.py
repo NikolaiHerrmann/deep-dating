@@ -134,7 +134,7 @@ class DatingTrainer:
                 
                 loss.backward()
                 model.optimizer.step()
-                model.scheduler.step()
+                #model.scheduler.step()
 
             self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
             mean_train_loss = self.metric_writer.mark_epoch(epoch)
