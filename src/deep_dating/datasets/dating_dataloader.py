@@ -48,7 +48,8 @@ class DatingDataLoader(DataLoader):
             img = self.model.transform_img(img_path)
 
             if self.model.model_type == ModelType.AUTOENCODER:
-                y = self.model.transform_img(y)
+                if self.model.training:
+                    y = self.model.transform_img(y)
 
             return img, y, img_path
         

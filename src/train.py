@@ -31,7 +31,7 @@ def train_autoencoder():
     
     #preprocess_autoencoder()
 
-    dataset = DatasetName.CLAMM
+    dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
     cross_val_bin = CrossVal(dataset, preprocess_ext="_Set_Auto_Bin")

@@ -7,6 +7,7 @@ from torchvision import transforms
 from torchsummary import summary
 from pytorch_msssim import ssim
 from deep_dating.networks import ModelType
+from deep_dating.util import get_torch_device
 
 
 class Autoencoder(nn.Module):
@@ -95,12 +96,15 @@ class Autoencoder(nn.Module):
         #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.metrics = None
         self.classification = False
+        self.training = True
 
     def ssim_loss(self, X, Y):
         return 100 * (1 - ssim(X, Y, data_range=255, size_average=True))
 
     def forward(self, x):
-        return self.decoder(self.encoder(x))
+        if self.training:
+            return self.decoder(self.encoder(x))
+        return self.encoder(x)
     
     def extract_feature(self, x):
         return self.encoder(x)
@@ -120,6 +124,19 @@ class Autoencoder(nn.Module):
     
     def save_state(self, path, state):
         torch.save(state, path)
+
+    def load(self, path, continue_training):
+        self.load_state_dict(torch.load(path, map_location=get_torch_device()))
+
+        if continue_training:
+            self.starting_weights = path
+            self.train()
+        else:
+            self.training = False
+            self.eval()
+
+        #if self.verbose:
+        print("Model loading completed!")
 
     def summary(self):
         # summary(self.encoder, (1, 512, 512))
