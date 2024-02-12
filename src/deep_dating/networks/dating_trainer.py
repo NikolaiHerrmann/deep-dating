@@ -77,6 +77,7 @@ class DatingTrainer:
 
             batch_size = inputs.shape[0]
             rand_idx = np.random.randint(0, batch_size, size=1)
+            rand_idx = np.random.randint(0, batch_size, size=1)
 
             axs[0].imshow(inputs[rand_idx, :][0, 0, :], cmap="gray")
             axs[0].set_title("Input")
