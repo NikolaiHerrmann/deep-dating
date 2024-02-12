@@ -148,9 +148,9 @@ class DatingTrainer:
 
                     labels_detach, outputs_detach = self._detach(val_loader, model, outputs, labels)
 
-                    self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach, labels_detach)
+                    self.metric_writer.add_batch_outputs(loss.item(), labels_detach, outputs_detach)
 
-            self._save_example(epoch, "val", model, inputs.cpu().detach().numpy(), outputs_detach)
+            self._save_example(epoch, "val", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
             mean_val_loss = self.metric_writer.mark_epoch(epoch)
             if self.verbose:
                 print(f"Train loss: {mean_train_loss} -- Val loss: {mean_val_loss}")
