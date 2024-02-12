@@ -96,13 +96,13 @@ class Autoencoder(nn.Module):
         #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.metrics = None
         self.classification = False
-        self.training = True
+        self.training_mode = True
 
     def ssim_loss(self, X, Y):
         return 100 * (1 - ssim(X, Y, data_range=255, size_average=True))
 
     def forward(self, x):
-        if self.training:
+        if self.training_mode:
             return self.decoder(self.encoder(x))
         return self.encoder(x)
     
@@ -132,7 +132,7 @@ class Autoencoder(nn.Module):
             self.starting_weights = path
             self.train()
         else:
-            self.training = False
+            self.training_mode = False
             self.eval()
 
         #if self.verbose:
