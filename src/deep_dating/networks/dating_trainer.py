@@ -163,7 +163,7 @@ class DatingTrainer:
             if save_model:
                 path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
                 #model.save(path)
-                self.best_model = (path, self.model.get_state())
+                self.best_model = (path, model.get_state())
                 print("not saving")
             if stop:
                 if self.verbose:
