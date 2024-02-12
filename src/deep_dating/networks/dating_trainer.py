@@ -159,7 +159,8 @@ class DatingTrainer:
             stop, save_model = self.early_stopper.stop(mean_val_loss)
             if save_model:
                 path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
-                model.save(path)
+                #model.save(path)
+                print("not saving")
             if stop:
                 if self.verbose:
                     print("Stopping early!")
