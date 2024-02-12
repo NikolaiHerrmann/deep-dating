@@ -82,11 +82,11 @@ class Autoencoder(nn.Module):
             # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             # nn.ReLU(),
             nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.Tanh()
+            nn.ReLU()
         )
 
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
-        self.criterion = nn.L1Loss() #self.ssim_loss
+        self.criterion = nn.MSELoss() #self.ssim_loss
         self.metrics = None
         self.classification = False
 
