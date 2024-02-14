@@ -6,8 +6,8 @@ import torch.nn as nn
 from torchvision import transforms
 from torchsummary import summary
 from pytorch_msssim import ssim
-#from deep_dating.networks import ModelType
-#from deep_dating.util import get_torch_device
+from deep_dating.networks import ModelType
+from deep_dating.util import get_torch_device
 
 
 class Autoencoder(nn.Module):
@@ -16,7 +16,7 @@ class Autoencoder(nn.Module):
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
-        #self.model_type = ModelType.AUTOENCODER
+        self.model_type = ModelType.AUTOENCODER
         self.input_size = input_size
 
         self.encoder = nn.Sequential(
@@ -119,8 +119,8 @@ class Autoencoder(nn.Module):
         print("Model loading completed!")
 
     def summary(self):
-        summary(self.encoder, (1, 512, 512))
-        summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
+        # summary(self.encoder, (1, 512, 512))
+        # summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
         pass
     
 
