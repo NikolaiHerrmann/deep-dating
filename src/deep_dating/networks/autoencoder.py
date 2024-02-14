@@ -119,8 +119,8 @@ class Autoencoder(nn.Module):
         print("Model loading completed!")
 
     def summary(self):
-        summary(self.encoder, (1, 512, 512))
-        summary(self.decoder, (512, 8, 8)) #(256, 32, 32)
+        # summary(self.encoder, (1, 512, 512))
+        # summary(self.decoder, (512, 8, 8)) #(256, 32, 32)
         pass
     
 
