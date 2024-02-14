@@ -26,11 +26,11 @@ model_transforms = transforms.Compose([transforms.ToTensor(),
 class PatchDataset(Dataset):
 
     def __init__(self, set_type):
-        self.X, self.y = PreprocessRunner(DatasetName.MPS).read_preprocessing_header(set_type)
+        self.X, self.y = PreprocessRunner(DatasetName.MPS, ext="_Set_Auto").read_preprocessing_header(set_type)
 
     def __getitem__(self, idx):
         img_path, img_date = self.X[idx], self.y[idx]
-        img = Image.open(img_path)
+        img = Image.open(img_path).convert("RGB")
         img = model_transforms(img)
         return img, img_date, img_path
 
@@ -111,13 +111,13 @@ def read():
 
 
 if __name__ == "__main__":
-    # train_loader = DataLoader(PatchDataset(SetType.TRAIN), batch_size=32, num_workers=7)
-    # val_loader = DataLoader(PatchDataset(SetType.VAL), batch_size=32, num_workers=7)
+    train_loader = DataLoader(PatchDataset(SetType.TRAIN), batch_size=32, num_workers=7)
+    val_loader = DataLoader(PatchDataset(SetType.VAL), batch_size=32, num_workers=7)
 
-    # model = vgg19(weights=VGG19_Weights.DEFAULT)
-    # model.classifier = model.classifier[:-1]
-    # model.eval()
+    model = vgg19(weights=VGG19_Weights.DEFAULT)
+    model.classifier = model.classifier[:-1]
+    model.eval()
 
-    #extract_features(train_loader, SetType.TRAIN, model)
-    #extract_features(val_loader, SetType.VAL, model)
-    read()
+    extract_features(train_loader, SetType.TRAIN, model)
+    extract_features(val_loader, SetType.VAL, model)
+    #read()
