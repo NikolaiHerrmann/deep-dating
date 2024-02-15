@@ -14,7 +14,8 @@ class DatingCNN(nn.Module):
 
     INCEPTION = "inception_resnet_v2"
     RESNET50 = "resnet50"
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256}
+    VGG = "vgg16.tv_in1k"
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, VGG: 224}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
@@ -46,11 +47,11 @@ class DatingCNN(nn.Module):
         self.learning_rate = learning_rate
         self.weight_decay = None
 
-        for param in self.base_model.parameters():
-            param.requires_grad = False
+        # for param in self.base_model.parameters():
+        #     param.requires_grad = False
         
-        for param in self.base_model.classif.parameters():
-            param.requires_grad = True
+        # for param in self.base_model.classif.parameters():
+        #     param.requires_grad = True
 
         self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
         #self.optimizer = torch.optim.SGD(self.base_model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=0.9)
