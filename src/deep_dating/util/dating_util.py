@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 FIGURE_PATH = "../figs"
 DATASETS_PATH = "../../datasets"
-SEED = 42
+SEED = 43
 VERBOSE = True
 
 

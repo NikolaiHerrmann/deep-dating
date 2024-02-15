@@ -56,7 +56,7 @@ class DatingCNN(nn.Module):
         #self.optimizer = torch.optim.SGD(self.base_model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=0.9)
         
         self.transforms = transforms.Compose([transforms.ToTensor(),
-                                              transforms.Resize(self.input_size, antialias=True),
+                                              #transforms.Resize(self.input_size, antialias=True),
                                               transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                                                    std=[0.229, 0.224, 0.225])])
         self.starting_weights = model_name if pretrained else None

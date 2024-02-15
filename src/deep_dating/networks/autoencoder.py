@@ -90,7 +90,7 @@ class Autoencoder(nn.Module):
     def forward(self, x):
         if self.training_mode:
             return self.decoder(self.encoder(x))
-        return self.encoder(x)
+        return torch.flatten(self.encoder(x))
     
     def extract_feature(self, x):
         return self.encoder(x)

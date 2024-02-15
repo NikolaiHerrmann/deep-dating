@@ -24,6 +24,7 @@ class PreprocessRunner:
             new_image_name = old_img_name + f"__{int(img_id)}_{int(img_date)}_p{i}.png"
             file_name = os.path.join(self.save_path, new_image_name)
             #plt.imsave(file_name, img, cmap="gray")
+            img = cv2.resize(img, (299, 299), interpolation=cv2.INTER_AREA)
             cv2.imwrite(file_name, img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
             names.append((file_name, img_date))
         return names

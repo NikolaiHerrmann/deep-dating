@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, None, None) #150 # 50
+    splitter = DatasetSplitter(dataset, None, None, test_size=0) #150 # 50
     preprocessor = PreprocessRunner(dataset.name)
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=8).extract_patches
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
