@@ -49,12 +49,13 @@ class DatasetSplitter:
         num_kick_out_dates = kick_out_dates.size
 
         if num_kick_out_dates > 0:
-            idxs_to_remove = np.where(self.y == kick_out_dates)
-            self.y = np.delete(self.y, idxs_to_remove)
-            self.X = np.delete(self.X, idxs_to_remove)
-            if self.verbose:
-                dict_ = dict(zip(kick_out_dates, counts[low_count_idxs]))
-                print(f"Removed {num_kick_out_dates} sample(s). Hist: {dict_}")
+            for kick in kick_out_dates:
+                idxs_to_remove = np.where(self.y == kick)
+                self.y = np.delete(self.y, idxs_to_remove)
+                self.X = np.delete(self.X, idxs_to_remove)
+                if self.verbose:
+                    dict_ = dict(zip(kick_out_dates, counts[low_count_idxs]))
+                    print(f"Removed {num_kick_out_dates} sample(s). Hist: {dict_}")
 
     def _balance_data(self, X, y):
         unique_labels, counts = np.unique(y, return_counts=True)

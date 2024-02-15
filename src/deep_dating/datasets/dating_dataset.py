@@ -128,7 +128,7 @@ class CLaMM(DatingDataset):
         imgs_listed = self.header_df[self.file_name_header].to_list()
         imgs_listed = [os.path.join(self.path, x) for x in imgs_listed]
         self._verify_header_matches_imgs_found(imgs_found, imgs_listed)
-        return imgs_found
+        return imgs_listed
 
     def _extract_img_dates(self):
         self.img_classes = self.header_df[self.date_header].to_list()
