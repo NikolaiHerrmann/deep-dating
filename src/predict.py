@@ -54,13 +54,13 @@ if __name__ == "__main__":
 
     X_train, y_train, X_val, y_val = list(cross_val.get_split(n_splits=1))[0]
 
-    train_loader = DatingDataLoader(dataset, X_train, y_train, model)
+    # train_loader = DatingDataLoader(dataset, X_train, y_train, model)
 
-    model_file_name = os.path.basename(model_path).split(".")[0] + "_feats_train.pkl"
-    dirs = os.path.dirname(model_path)
-    save_path = os.path.join(dirs, model_file_name)
+    # model_file_name = os.path.basename(model_path).split(".")[0] + "_feats_train.pkl"
+    # dirs = os.path.dirname(model_path)
+    # save_path = os.path.join(dirs, model_file_name)
     
-    predictor.predict(model, train_loader, save_path=save_path)
+    # predictor.predict(model, train_loader, save_path=save_path)
 
 
     val_loader = DatingDataLoader(dataset, X_val, y_val, model)
