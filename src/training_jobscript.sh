@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=2:00:00
+#SBATCH --time=1:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --output=job-%j.log
 #SBATCH --mem=12G
@@ -16,4 +16,4 @@ module load scikit-learn/0.24.1-foss-2022a
 module load OpenCV/4.6.0-foss-2022a-contrib
 module load scikit-image/0.19.3-foss-2022a
 
-python3 train.py
+python3 predict.py
