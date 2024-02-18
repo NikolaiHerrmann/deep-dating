@@ -2,9 +2,11 @@
 from deep_dating.util import get_torch_device
 from deep_dating.networks import ModelType
 from deep_dating.metrics import DatingMetrics
+from torchvision.models import vgg16, VGG16_Weights
 import torch
 import cv2
 import torch.nn as nn
+
 from torchvision import transforms
 from torchsummary import summary
 import timm
@@ -42,7 +44,9 @@ class DatingCNN(nn.Module):
         if self.verbose:
             print("Model doing:", ("classification" if self.classification else "regression"))
 
-        self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
+        #self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
+        self.base_model = vgg16(weights=VGG16_Weights.DEFAULT)
+        self.base_model.classifier[6] = nn.Linear(4096, num_classes)
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
         self.weight_decay = None

@@ -13,13 +13,13 @@ def train_dating_cnn():
     #preprocess_dating_cnn(MPS())
 
     cross_val = CrossVal(dataset)
-    trainer = DatingTrainer(num_epochs=100, patience=15)
+    trainer = DatingTrainer(num_epochs=100, patience=5)
     n_splits = 1
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
+        model = DatingCNN(model_name="vgg16.tv_in1k", num_classes=15)
         #model.load("runs/Feb9-12-7-17/model_epoch_0.pt", continue_training=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model)

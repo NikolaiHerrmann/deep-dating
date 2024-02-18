@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 from deep_dating.util import get_torch_device, SEED
-from torchvision.models import vgg19, VGG19_Weights
+from torchvision.models import vgg16, VGG16_Weights
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from deep_dating.datasets import SetType, DatasetName
@@ -12,6 +12,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import pickle
 from sklearn.decomposition import PCA
+from torchsummary import summary
 from sklearn.preprocessing import StandardScaler
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -114,7 +115,9 @@ if __name__ == "__main__":
     train_loader = DataLoader(PatchDataset(SetType.TRAIN), batch_size=32, num_workers=7)
     val_loader = DataLoader(PatchDataset(SetType.VAL), batch_size=32, num_workers=7)
 
-    model = vgg19(weights=VGG19_Weights.DEFAULT)
+    model = vgg16(weights=VGG16_Weights.DEFAULT)
+    print(model)
+    print(summary(model, (3, 256, 256)))
     model.classifier = model.classifier[:-1]
     model.eval()
 
