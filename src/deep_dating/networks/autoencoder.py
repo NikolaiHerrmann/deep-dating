@@ -12,7 +12,7 @@ from deep_dating.util import get_torch_device
 
 class Autoencoder(nn.Module):
 
-    def __init__(self, learning_rate=0.001, input_size=512):
+    def __init__(self, learning_rate=0.001, input_size=256):
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
@@ -37,25 +37,10 @@ class Autoencoder(nn.Module):
             nn.ReLU(),
             nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(),
-            nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(),
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(),
+            nn.ReLU()
         )
         
         self.decoder = nn.Sequential(
-            # nn.Linear(512, 65536),
-            # nn.ReLU(),
-            # nn.Unflatten(1, (256, 16, 16)),
-            nn.ConvTranspose2d(1024, 1024, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU(),
-            nn.ConvTranspose2d(1024, 512, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.BatchNorm2d(512),
-            nn.ReLU(),
             nn.ConvTranspose2d(512, 512, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(),
@@ -100,6 +85,7 @@ class Autoencoder(nn.Module):
     
     def transform_img(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.resize(img, (256, 256), interpolation=cv2.INTER_AREA)
         return transforms.ToTensor()(img)
 
     def save(self, path):
@@ -125,8 +111,8 @@ class Autoencoder(nn.Module):
         print("Model loading completed!")
 
     def summary(self):
-        # summary(self.encoder, (1, 512, 512))
-        # summary(self.decoder, (1024, 2, 2)) #(256, 32, 32)
+        # summary(self.encoder, (1, 256, 256))
+        # summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
         pass
     
 
