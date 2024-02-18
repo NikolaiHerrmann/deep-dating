@@ -46,7 +46,7 @@ class DatingCNN(nn.Module):
 
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
 
-        self.base_model.head_drop = nn.Dropout(p=0.5)
+        #self.base_model.head_drop = nn.Dropout(p=0.5)
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
         self.weight_decay = None

@@ -23,10 +23,9 @@ def preprocess_dating_cnn(dataset):
 
 def preprocess_autoencoder():
     dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    dataset = MPS()
-    splitter = DatasetSplitter(dataset, None, None)
+    splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
 
-    for i in range(2):
+    for i in range(1):
         binarize = i == 1
         name_ext = "_Bin" if binarize else ""
 
@@ -72,8 +71,8 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
     #test_patch_extraction()
-    test()
+    #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
-    #preprocess_autoencoder()
+    preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
 

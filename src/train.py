@@ -12,7 +12,7 @@ def train_dating_cnn():
     #preprocess_autoencoder(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_dating_cnn(MPS())
 
-    cross_val = CrossVal(dataset)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
     trainer = DatingTrainer(num_epochs=100, patience=5)
     n_splits = 1
 
