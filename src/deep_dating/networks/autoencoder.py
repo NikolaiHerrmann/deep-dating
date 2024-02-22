@@ -65,8 +65,6 @@ class Autoencoder(nn.Module):
 
         self.d8 = nn.ConvTranspose2d(128, 1, kernel_size=4, stride=2, padding=1)
 
-        #leaky_relu = nn.LeakyReLU(0.2)
-        self.negative_slope = 0.2
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.L1Loss()
@@ -81,37 +79,37 @@ class Autoencoder(nn.Module):
         ])
 
     def forward(self, x):
-        x1 = leaky_relu(self.e1(x), self.negative_slope)
-        x2 = leaky_relu(self.e2_batch(self.e2(x1)), self.negative_slope)
-        x3 = leaky_relu(self.e3_batch(self.e3(x2)), self.negative_slope)
-        x4 = leaky_relu(self.e4_batch(self.e4(x3)), self.negative_slope)
-        x5 = leaky_relu(self.e5_batch(self.e5(x4)), self.negative_slope)
-        x6 = leaky_relu(self.e6_batch(self.e6(x5)), self.negative_slope)
-        x7 = leaky_relu(self.e7_batch(self.e7(x6)), self.negative_slope)
-        x8 = leaky_relu(self.e8_batch(self.e8(x7)), self.negative_slope)
+        x1 = leaky_relu(self.e1(x), negative_slope=0.2)
+        x2 = leaky_relu(self.e2_batch(self.e2(x1)), negative_slope=0.2)
+        x3 = leaky_relu(self.e3_batch(self.e3(x2)), negative_slope=0.2)
+        x4 = leaky_relu(self.e4_batch(self.e4(x3)), negative_slope=0.2)
+        x5 = leaky_relu(self.e5_batch(self.e5(x4)), negative_slope=0.2)
+        x6 = leaky_relu(self.e6_batch(self.e6(x5)), negative_slope=0.2)
+        x7 = leaky_relu(self.e7_batch(self.e7(x6)), negative_slope=0.2)
+        x8 = leaky_relu(self.e8_batch(self.e8(x7)), negative_slope=0.2)
 
-        xx1 = dropout2d(leaky_relu(self.d1_batch(self.d1(x8)), self.negative_slope), p=0.5, training=self.training)
+        xx1 = leaky_relu(dropout2d(self.d1_batch(self.d1(x8)), p=0.5, training=self.training), negative_slope=0.2)
         xx1c = torch.cat([xx1, x7], dim=1)
 
-        xx2 = dropout2d(leaky_relu(self.d2_batch(self.d2(xx1c)), self.negative_slope), p=0.5, training=self.training)
+        xx2 = leaky_relu(dropout2d(self.d2_batch(self.d2(xx1c)), p=0.5, training=self.training), negative_slope=0.2)
         xx2c = torch.cat([xx2, x6], dim=1)
 
-        xx3 = dropout2d(leaky_relu(self.d3_batch(self.d3(xx2c)), self.negative_slope), p=0.5, training=self.training)
+        xx3 = leaky_relu(dropout2d(self.d3_batch(self.d3(xx2c)), p=0.5, training=self.training), negative_slope=0.2)
         xx3c = torch.cat([xx3, x5], dim=1)
 
-        xx4 = leaky_relu(self.d4_batch(self.d4(xx3c)), self.negative_slope)
+        xx4 = leaky_relu(self.d4_batch(self.d4(xx3c)), negative_slope=0.2)
         xx4c = torch.cat([xx4, x4], dim=1)
 
-        xx5 = leaky_relu(self.d5_batch(self.d5(xx4c)), self.negative_slope)
+        xx5 = leaky_relu(self.d5_batch(self.d5(xx4c)), negative_slope=0.2)
         xx5c = torch.cat([xx5, x3], dim=1)
 
-        xx6 = leaky_relu(self.d6_batch(self.d6(xx5c)), self.negative_slope)
+        xx6 = leaky_relu(self.d6_batch(self.d6(xx5c)), negative_slope=0.2)
         xx6c = torch.cat([xx6, x2], dim=1)
 
-        xx7 = leaky_relu(self.d7_batch(self.d7(xx6c)), self.negative_slope)
+        xx7 = leaky_relu(self.d7_batch(self.d7(xx6c)), negative_slope=0.2)
         xx7c = torch.cat([xx7, x1], dim=1)
 
-        xx8 = leaky_relu(self.d8(xx7c), self.negative_slope)
+        xx8 = leaky_relu(self.d8(xx7c), negative_slope=0.2)
 
         return tanh(xx8)
     
