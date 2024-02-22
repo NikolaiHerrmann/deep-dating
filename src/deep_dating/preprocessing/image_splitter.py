@@ -3,14 +3,17 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 class ImageSplitter:
 
-    def __init__(self, patch_size=512, binarize=False, force_size=True, plot=True):
+    def __init__(self, patch_size=256, pad=True, binarize=False, 
+                 force_size=True, plot=True):
         self.patch_size = patch_size
+        self.pad = pad
         self.binarize = binarize
         self.force_size = force_size
         self.plot = plot
+
+        assert not((not pad) and (not force_size)), "pad=False and force_size=False has not yet been implemented!"
 
     def _calc_dim(self):
         self.height, self.width = self.img.shape
@@ -46,7 +49,7 @@ class ImageSplitter:
 
     def split(self, img_path):
         self.img_org = cv2.imread(img_path)
-        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)          
+        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)        
         self._calc_dim()
 
         self._calc_ratio()
@@ -79,15 +82,16 @@ class ImageSplitter:
             img_split = self.img[patch_start_idx:patch_end_idx, :] if self.extend_width else self.img[:, patch_start_idx:patch_end_idx]
 
             start_idx = 0
-            end_idx = -num_padding + self.patch_size
+            end_idx = -num_padding + self.patch_size if self.pad else self.patch_size
 
             for j in range(num_patches):
                 
                 img = img_split[:, start_idx:end_idx] if self.extend_width else img_split[start_idx:end_idx, :]
-                img = self._pad_image(img, (self.patch_size, self.patch_size), extend_width=self.extend_width)
+                if self.pad:
+                    img = self._pad_image(img, (self.patch_size, self.patch_size), extend_width=self.extend_width)
                 patch_ls.append(img)
 
-                start_idx = end_idx
+                start_idx = end_idx if self.pad else end_idx - diff
                 end_idx += self.patch_size
 
                 if self.plot:
@@ -103,15 +107,15 @@ class ImageSplitter:
 
 
 if __name__ == "__main__":
-    image_splitter = ImageSplitter(plot=True, binarize=True)
+    image_splitter = ImageSplitter(plot=True, pad=False, force_size=True)
     path = "../../../../datasets/ICDAR2017_CLaMM_Training/IRHT_P_001274.tif"
     #path = "../../../../datasets/MPS/Download/1550/MPS1550_0024.ppm"
     import glob
-    import random
+    # import random
 
-    imgs = glob.glob("../../../../datasets/ICDAR2017_CLaMM_Training/*.tif")
+    imgs = glob.glob("../../../../datasets/CLaMM_Training_Clean/*.tif")
     #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
-    random.shuffle(imgs)
+    #random.shuffle(imgs)
     for path in imgs:
         image_splitter.split(path)
         plt.show()

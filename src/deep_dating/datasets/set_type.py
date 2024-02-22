@@ -12,6 +12,7 @@ class DatasetName(Enum):
     MPS = "mps"
     CLAMM = "clamm"
     SCRIBBLE = "scribble"
+    DIBCO = "dibco"
 
     def __str__(self):
         return self.name

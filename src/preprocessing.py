@@ -1,9 +1,10 @@
 
 import os
-from deep_dating.datasets import load_all_dating_datasets, SetType, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
+from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.util import DATASETS_PATH
 import matplotlib.pyplot as plt
+
 
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
@@ -19,6 +20,15 @@ def preprocess_dating_cnn(dataset):
             print("Patch extraction done for", set_type)
         else:
             print("Skipping", set_type)
+
+
+def preprocess_dating_cnn_test(dataset):
+    print("Running patch extraction for ", dataset.name, "...")
+
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Test")
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
+
+    preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
 
 def preprocess_autoencoder():
@@ -38,19 +48,38 @@ def preprocess_autoencoder():
             print("Image splitting done for", set_type)
 
 
+def preprocess_bin():
+    dataset = BinDataset()
+
+    for X_train, X_val, ext in [(dataset.X_train, dataset.X_test, "_Set"), (dataset.y_train, dataset.y_test, "_Set_GT")]:
+
+        preprocessor = PreprocessRunner(dataset.name, ext=ext, include_old_name=False)
+        preprocessing_func = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False).extract_patches
+
+        y = [0] * len(X_train)
+        preprocessor.run(X_train, y, SetType.TRAIN, preprocessing_func)
+
+        y = [0] * len(X_val)
+        preprocessor.run(X_val, y, SetType.VAL, preprocessing_func)
+
+
 def test_patch_extraction():
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True, drop_out_rate=0, num_lines_per_patch=8)
+    BinDataset()
+    exit()
+
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW)
 
     #for dataset in load_all_dating_datasets():
     import random
-    x = CLaMM().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    #x = CLaMM_Test_Task4().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
     #random.shuffle(x)
-    for file in x:
-        dp.extract_patches(file)
-        # plt.imshow(dp.img_bin, cmap="gray")
-        # plt.show()
-        dp.save_plot(show=True)
-            #break
+    #for file in x:
+    file = os.path.join("/home/nikolai/Downloads/datasets/dibco/2018_img_1/5.bmp")
+    dp.extract_patches(file)
+    # plt.imshow(dp.img_bin, cmap="gray")
+    # plt.show()
+    dp.save_plot(show=True)
+        #break
 
 
 def test():
@@ -70,9 +99,12 @@ if __name__ == "__main__":
     #preprocess_autoencoder()
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
+    #preprocess_dating_cnn_test()
+    preprocess_bin()
     #test_patch_extraction()
+    #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
-    preprocess_autoencoder()
+    #preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
 

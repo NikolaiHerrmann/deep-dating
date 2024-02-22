@@ -126,7 +126,6 @@ class DatingTrainer:
                 model.optimizer.zero_grad()
                 outputs = model(inputs)
                 loss = model.criterion(outputs, labels)
-                #print(loss)
 
                 labels_detach, outputs_detach = self._detach(train_loader, model, outputs, labels)
 
@@ -134,6 +133,7 @@ class DatingTrainer:
                 
                 loss.backward()
                 model.optimizer.step()
+                break
                 #model.scheduler.step()
 
             self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)

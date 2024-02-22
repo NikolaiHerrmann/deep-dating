@@ -51,7 +51,32 @@ def train_autoencoder():
 
         trainer.train(model, train_loader, val_loader, i)
 
+def train_autoencoder2():
+    
+    #preprocess_autoencoder()
+
+    dataset = DatasetName.DIBCO
+
+    cross_val = CrossVal(dataset, preprocess_ext="_Set")
+    cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT")
+    trainer = DatingTrainer(patience=20)
+
+    n_splits = 1
+
+    for i in range(n_splits):
+        print(f" -- Running split: {i+1}/{n_splits} -- ")
+
+        (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=n_splits))
+        (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=n_splits))      
+
+        model = Autoencoder()
+        train_loader = DatingDataLoader(dataset, X_train, X_train_gt, model)
+        val_loader = DatingDataLoader(dataset, X_val, X_val_gt, model)
+
+        trainer.train(model, train_loader, val_loader, i)
+
+
 
 if __name__ == "__main__":
     #train_dating_cnn()
-    train_autoencoder()
+    train_autoencoder2()

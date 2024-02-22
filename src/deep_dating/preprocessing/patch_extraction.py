@@ -13,28 +13,31 @@ class PatchMethod(Enum):
     RANDOM = 0
     RANDOM_LINES = 1
     SLIDING_WINDOW_LINES = 2
+    SLIDING_WINDOW = 3
 
 
 class PatchExtractor:
 
     def __init__(self, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, 
                  line_peak_distance=50, num_random_patches=20, plot=True, 
-                 patch_size_for_random=256, calc_pixel_overlap=True,
-                 rm_white_pixel_ratio=0.98, drop_out_rate=0):
+                 patch_size=256, calc_pixel_overlap=True,
+                 rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
         self.num_random_patches = num_random_patches
         self.plot = plot
         self.extra_draw_info = None
-        self.patch_size = patch_size_for_random
+        self.patch_size = patch_size
         self.calc_pixel_overlap = calc_pixel_overlap
         self.rm_white_pixel_ratio = rm_white_pixel_ratio
         self.drop_out_rate = drop_out_rate
+        self.min_comp_count = min_comp_count
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
-                             PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines}
+                             PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines,
+                             PatchMethod.SLIDING_WINDOW: self._extract_sliding_window}
     
     def extract_patches(self, img_path, method=None):
         self._read_img(img_path)
@@ -71,8 +74,6 @@ class PatchExtractor:
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
         self.height, self.width = self.img.shape
 
-        self.img_bin = binarize_img(self.img, show=False)
-
         if self.plot:
             plt.imshow(self.img, cmap="gray")
 
@@ -92,6 +93,8 @@ class PatchExtractor:
         return img[y:y+size, x:x+size], x, y
 
     def _calc_num_lines_in_img(self, extra_show=False):
+        self.img_bin = binarize_img(self.img, show=False)
+
         hist = (1 - self.img_bin).sum(axis=1)
         thresh = np.mean(hist)
 
@@ -128,7 +131,10 @@ class PatchExtractor:
     def _append_patch(self, patch, x, y):
         bin_patch = self.img_bin[y:y+self.patch_size, x:x+self.patch_size]
         white_pixel_count = np.count_nonzero(bin_patch)
-        if white_pixel_count / bin_patch.size > self.rm_white_pixel_ratio:
+        comp_count = cv2.connectedComponentsWithStats(bin_patch, 4, cv2.CV_32S)[0]
+        
+        if ((white_pixel_count / bin_patch.size > self.rm_white_pixel_ratio) or
+            (comp_count < self.min_comp_count)):
             return
 
         self.patch_ls.append(patch)
@@ -201,4 +207,30 @@ class PatchExtractor:
 
         if self.plot:
             plt.title(f"Sliding Window Method (Approx {self.num_lines_per_patch} Lines within each Patch)")
+
+    def _extract_sliding_window(self):
+        y_n = int(np.ceil(self.height / self.patch_size))
+        x_n = int(np.ceil(self.width / self.patch_size))
+        
+        padded_img = np.zeros((y_n * self.patch_size, x_n * self.patch_size), dtype=np.uint8)
+        padded_img[0:self.height, 0:self.width] = self.img
+        if self.plot:
+            plt.imshow(padded_img, cmap="gray")
+
+        y = 0
+        x = 0
+
+        for _ in range(y_n):
+            for _ in range(x_n):
+                
+                patch = padded_img[y:y+self.patch_size, x:x+self.patch_size]
+                self.patch_ls.append(patch)
+
+                if self.plot:
+                    self._draw_rect(x, y)
+
+                x += self.patch_size
+
+            x = 0
+            y += self.patch_size
     

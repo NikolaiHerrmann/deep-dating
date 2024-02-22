@@ -19,10 +19,18 @@ class DatingDataset(ABC):
         self.path = path
         self.name = name
         self.verbose = verbose
+        self.idxs_to_remove = []
 
         self._read_header_file()
         self.X = np.asarray(self._extract_img_names())
         self.y = np.asarray(self._extract_img_dates(), dtype=np.float32)
+
+        if self.verbose and self.idxs_to_remove:
+            print("Removing:", self.X[self.idxs_to_remove])
+
+        self.X = np.delete(self.X, self.idxs_to_remove)
+        self.y = np.delete(self.y, self.idxs_to_remove)
+
         assert len(self.X) == len(self.y), "Images and dates not of equal length!"
         
         self.size = len(self.X)
@@ -40,15 +48,18 @@ class DatingDataset(ABC):
         pass
 
     def _verify_header_matches_imgs_found(self, imgs_found, imgs_listed):
-        if self.verbose:
-            imgs_found_set, imgs_listed_set = set(imgs_found), set(imgs_listed)
-            if imgs_found_set != imgs_listed_set or len(imgs_found) != len(imgs_listed):
+        imgs_found_set, imgs_listed_set = set(imgs_found), set(imgs_listed)
 
-                
-                diff = imgs_found_set.symmetric_difference(imgs_listed_set)
-                print("Warning! File list found in header does not entirely",
-                      f"match images found in directory. {len(diff)} image",
-                      f"inconsistencies found.\n\tDifferences found: {diff}")
+        if imgs_found_set != imgs_listed_set or len(imgs_found) != len(imgs_listed):
+
+            diff = imgs_found_set.symmetric_difference(imgs_listed_set)
+            print("Warning! File list found in header does not entirely",
+                    f"match images found in directory. {len(diff)} image",
+                    f"inconsistencies found.\n\tDifferences found: {diff}")
+            
+            for x in diff:
+                if x in imgs_listed_set:
+                    self.idxs_to_remove.append(imgs_listed.index(x))
 
     def save_to_dir(self, save_dir):
         unique_dates = np.unique(self.y)
@@ -91,7 +102,8 @@ class MPS(DatingDataset):
 class CLaMM(DatingDataset):
 
     def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training"),
-                 file_name_header="FILENAME", date_header="DATE_TYPE", img_exts=["tif", "jpg", "JPG"]):
+                 file_name_header="FILENAME", date_header="DATE_TYPE", 
+                 script_header="SCRIPT_TYPE", img_exts=["tif", "jpg", "JPG"]):
         self.class_range = {1: (1000, 1000),
                             2: (1001, 1100),
                             3: (1101, 1200),
@@ -112,6 +124,7 @@ class CLaMM(DatingDataset):
             self.class_range_mean[key] = int(np.mean(val))
         self.file_name_header = file_name_header
         self.date_header = date_header
+        self.script_header = script_header
         self.img_exts = img_exts
         super().__init__(path, DatasetName.CLAMM)
 
@@ -132,14 +145,17 @@ class CLaMM(DatingDataset):
 
     def _extract_img_dates(self):
         self.img_classes = self.header_df[self.date_header].to_list()
+
+        self.script_labels = self.header_df[self.script_header].to_list()
+
         return [self.class_range_mean[x] for x in self.img_classes]
 
 
 class CLaMM_Test_Task3(CLaMM):
 
-    def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_task1_task3"),
-                 file_name_header="FILE_NAME", date_header="DATE_ICDAR"):
-        super().__init__(path, file_name_header, date_header)
+    def __init__(self, path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"),
+                 file_name_header="FILE_NAME", date_header="DATE_ICDAR", script_header="Script_type_ICDAR2017"):
+        super().__init__(path, file_name_header, date_header, script_header)
 
 
 class CLaMM_Test_Task4(CLaMM_Test_Task3):
