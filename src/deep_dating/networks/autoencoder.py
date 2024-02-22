@@ -148,7 +148,7 @@ class Autoencoder(nn.Module):
     def summary(self):
         # summary(self.encoder, (1, 256, 256))
         # summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
-        summary(self, (1, 256, 256))
+        #summary(self, (1, 256, 256))
         pass
     
 
