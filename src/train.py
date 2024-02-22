@@ -59,7 +59,7 @@ def train_autoencoder2():
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set")
     cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT")
-    trainer = DatingTrainer(patience=20)
+    trainer = DatingTrainer(patience=30)
 
     n_splits = 1
 

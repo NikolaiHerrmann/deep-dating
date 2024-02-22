@@ -3,6 +3,7 @@ import cv2
 import torch
 import copy
 import torch.nn as nn
+from torch.nn.functional import leaky_relu, dropout2d, tanh
 from torchvision import transforms
 from torchsummary import summary
 from deep_dating.networks import ModelType
@@ -11,7 +12,7 @@ from deep_dating.util import get_torch_device
 
 class Autoencoder(nn.Module):
 
-    def __init__(self, learning_rate=0.001, input_size=256):
+    def __init__(self, learning_rate=0.0002, input_size=256):
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
@@ -64,10 +65,10 @@ class Autoencoder(nn.Module):
 
         self.d8 = nn.ConvTranspose2d(128, 1, kernel_size=4, stride=2, padding=1)
 
-        self.relu = nn.LeakyReLU(0.2)
-        self.tanh = nn.Tanh()
+        #leaky_relu = nn.LeakyReLU(0.2)
+        self.negative_slope = 0.2
 
-        self.optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.L1Loss()
         #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
         self.metrics = None
@@ -80,39 +81,39 @@ class Autoencoder(nn.Module):
         ])
 
     def forward(self, x):
-        x1 = self.relu(self.e1(x))
-        x2 = self.relu(self.e2_batch(self.e2(x1)))
-        x3 = self.relu(self.e3_batch(self.e3(x2)))
-        x4 = self.relu(self.e4_batch(self.e4(x3)))
-        x5 = self.relu(self.e5_batch(self.e5(x4)))
-        x6 = self.relu(self.e6_batch(self.e6(x5)))
-        x7 = self.relu(self.e7_batch(self.e7(x6)))
-        x8 = self.relu(self.e8_batch(self.e8(x7)))
+        x1 = leaky_relu(self.e1(x), self.negative_slope)
+        x2 = leaky_relu(self.e2_batch(self.e2(x1)), self.negative_slope)
+        x3 = leaky_relu(self.e3_batch(self.e3(x2)), self.negative_slope)
+        x4 = leaky_relu(self.e4_batch(self.e4(x3)), self.negative_slope)
+        x5 = leaky_relu(self.e5_batch(self.e5(x4)), self.negative_slope)
+        x6 = leaky_relu(self.e6_batch(self.e6(x5)), self.negative_slope)
+        x7 = leaky_relu(self.e7_batch(self.e7(x6)), self.negative_slope)
+        x8 = leaky_relu(self.e8_batch(self.e8(x7)), self.negative_slope)
 
-        xx1 = self.relu(self.d1_batch(self.d1(x8)))
+        xx1 = dropout2d(leaky_relu(self.d1_batch(self.d1(x8)), self.negative_slope), p=0.5, training=self.training)
         xx1c = torch.cat([xx1, x7], dim=1)
 
-        xx2 = self.relu(self.d2_batch(self.d2(xx1c)))
+        xx2 = dropout2d(leaky_relu(self.d2_batch(self.d2(xx1c)), self.negative_slope), p=0.5, training=self.training)
         xx2c = torch.cat([xx2, x6], dim=1)
 
-        xx3 = self.relu(self.d3_batch(self.d3(xx2c)))
+        xx3 = dropout2d(leaky_relu(self.d3_batch(self.d3(xx2c)), self.negative_slope), p=0.5, training=self.training)
         xx3c = torch.cat([xx3, x5], dim=1)
 
-        xx4 = self.relu(self.d4_batch(self.d4(xx3c)))
+        xx4 = leaky_relu(self.d4_batch(self.d4(xx3c)), self.negative_slope)
         xx4c = torch.cat([xx4, x4], dim=1)
 
-        xx5 = self.relu(self.d5_batch(self.d5(xx4c)))
+        xx5 = leaky_relu(self.d5_batch(self.d5(xx4c)), self.negative_slope)
         xx5c = torch.cat([xx5, x3], dim=1)
 
-        xx6 = self.relu(self.d6_batch(self.d6(xx5c)))
+        xx6 = leaky_relu(self.d6_batch(self.d6(xx5c)), self.negative_slope)
         xx6c = torch.cat([xx6, x2], dim=1)
 
-        xx7 = self.relu(self.d7_batch(self.d7(xx6c)))
+        xx7 = leaky_relu(self.d7_batch(self.d7(xx6c)), self.negative_slope)
         xx7c = torch.cat([xx7, x1], dim=1)
 
-        xx8 = self.relu(self.d8(xx7c))
+        xx8 = leaky_relu(self.d8(xx7c), self.negative_slope)
 
-        return self.tanh(xx8)
+        return tanh(xx8)
     
     def extract_feature(self, x):
         return self.encoder(x)
@@ -149,7 +150,7 @@ class Autoencoder(nn.Module):
     def summary(self):
         # summary(self.encoder, (1, 256, 256))
         # summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
-        #summary(self, (1, 256, 256))
+        summary(self, (1, 256, 256))
         pass
     
 

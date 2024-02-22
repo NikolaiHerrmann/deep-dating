@@ -20,7 +20,8 @@ def set_seed():
     np.random.seed(SEED)
     torch.manual_seed(SEED)
     torch.cuda.manual_seed(SEED)
-    torch.backends.cudnn.deterministic = True
+    #torch.backends.cudnn.deterministic = True
+    #torch.backends.cudnn.benchmark = True
     if VERBOSE:
         print(f"Seed set to {SEED}")
 
