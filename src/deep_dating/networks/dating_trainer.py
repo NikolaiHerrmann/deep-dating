@@ -133,7 +133,6 @@ class DatingTrainer:
                 
                 loss.backward()
                 model.optimizer.step()
-                break
                 #model.scheduler.step()
 
             self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
