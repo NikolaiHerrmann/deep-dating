@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from lorem_text import lorem
 import random
 
+
 random.seed(43)
+
 
 book_binding = BookBinding(shadow_radius_range=(100, 100),
                               curve_range_right=(300, 300),
@@ -46,8 +48,8 @@ photo_copy = BadPhotoCopy(noise_type=-1,
                                    edge_effect=0)
 
 folding = Folding(fold_count=5,
-                  fold_noise=0.0,
-                  fold_angle_range = (-360,360),
+                  fold_noise=0.1,
+                  fold_angle_range = (-45,45),
                   gradient_width=(0.1, 0.2),
                   gradient_height=(0.01, 0.1),
                   backdrop_color = (0,0,0),
@@ -109,7 +111,7 @@ def make_img(img_name, num_words_range=(1, 20), img_dim_range=(400, 800), num_li
     y = 0
 
     thickness = random.randint(3, 5)
-    scale = random.random() + random.randint(1, 2)
+    scale = random.random() + random.randint(1, 2) + 0.5
 
     for _ in range(random.randint(*num_lines_range)):
         text = lorem.words(random.randint(*num_words_range))
@@ -123,35 +125,53 @@ def make_img(img_name, num_words_range=(1, 20), img_dim_range=(400, 800), num_li
 
     mask = cv2.cvtColor(img_full, cv2.COLOR_BGR2GRAY)
 
-    #img_full, mask = folding(img_full, mask=mask)[:2]
-    #img_full, mask = geometric(img_full, mask=mask)[:2]
-    img_full, mask = letterpress(img_full, mask=mask)[:2]
-    img_full, mask = noisy_lines(img_full, mask=mask)[:2]
+    if random.random() > 0.8:
+        img_full, mask = folding(img_full, mask=mask)[:2]
+        mask = cv2.GaussianBlur(mask, (5, 5), 0)
+    
+    if random.random() > 0.6:
+        img_full, mask = geometric(img_full, mask=mask)[:2]
 
-    page_border.page_numbers = random.randint(5, 50)
+    if random.random() > 0.3:
+        img_full, mask = letterpress(img_full, mask=mask)[:2]
 
-    back_color = np.random.randint(1, 128)
-    page_border.page_border_background_color = (back_color, back_color, back_color)
+    if random.random() > 0.3:
+        img_full, mask = noisy_lines(img_full, mask=mask)[:2]
 
-    img_full, mask = page_border(img_full, mask=mask)[:2]
-    img_full, mask = photo_copy(img_full, mask=mask)[:2]
-    img_full, mask = shadow_cast(img_full, mask=mask)[:2]
+    if random.random() > 0.4:
+        page_border.page_numbers = random.randint(5, 50)
+        back_color = np.random.randint(1, 128)
+        page_border.page_border_background_color = (back_color, back_color, back_color)
+        img_full, mask = page_border(img_full, mask=mask)[:2]
+    elif random.random() > 0.3:
+        img_full, mask = book_binding(img_full, mask=mask)[:2]
+
+    if random.random() > 0.1:
+        img_full, mask = photo_copy(img_full, mask=mask)[:2]
+
+    if random.random() > 0.1:
+        img_full, mask = shadow_cast(img_full, mask=mask)[:2]
+
+    if random.random() > 0.5:
+        img_full = cv2.flip(img_full, 1)
+        mask = cv2.flip(mask, 1)
+    
     img_full, mask = jpeg(img_full, mask=mask)[:2]
-
     img_full = cv2.GaussianBlur(img_full, (5, 5), 0)
     
     fig, ax = plt.subplots(1, 2)
 
+    mask = mask.astype(np.uint8)
     mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     mask = cv2.floodFill(mask, None, (0, 0), 255)[1]
 
     ax[0].imshow(img_full)
     ax[1].imshow(mask, cmap="gray")
-    # plt.show()
+    plt.show()
+    return
 
     cv2.imwrite(img_name + ".png", img_full, [cv2.IMWRITE_PNG_COMPRESSION, 0])
     cv2.imwrite(img_name + "_gt.png", mask, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-    exit()
 
 
 while True:
