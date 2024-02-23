@@ -3,7 +3,7 @@ import cv2
 import torch
 import copy
 import torch.nn as nn
-from torch.nn.functional import leaky_relu, dropout2d, tanh
+from torch.nn.functional import leaky_relu, dropout2d
 from torchvision import transforms
 from torchsummary import summary
 from deep_dating.networks import ModelType
@@ -111,7 +111,7 @@ class Autoencoder(nn.Module):
 
         xx8 = leaky_relu(self.d8(xx7c), negative_slope=0.2)
 
-        return tanh(xx8)
+        return torch.tanh(xx8)
     
     def extract_feature(self, x):
         return self.encoder(x)

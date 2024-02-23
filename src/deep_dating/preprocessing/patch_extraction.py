@@ -74,6 +74,8 @@ class PatchExtractor:
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
         self.height, self.width = self.img.shape
 
+        self.img_bin = binarize_img(self.img, show=False)
+
         if self.plot:
             plt.imshow(self.img, cmap="gray")
 
@@ -93,8 +95,6 @@ class PatchExtractor:
         return img[y:y+size, x:x+size], x, y
 
     def _calc_num_lines_in_img(self, extra_show=False):
-        self.img_bin = binarize_img(self.img, show=False)
-
         hist = (1 - self.img_bin).sum(axis=1)
         thresh = np.mean(hist)
 
@@ -211,6 +211,9 @@ class PatchExtractor:
     def _extract_sliding_window(self):
         y_n = int(np.ceil(self.height / self.patch_size))
         x_n = int(np.ceil(self.width / self.patch_size))
+
+        self.padded_width = x_n * self.patch_size
+        self.padded_height = y_n * self.patch_size
         
         padded_img = np.zeros((y_n * self.patch_size, x_n * self.patch_size), dtype=np.uint8)
         padded_img[0:self.height, 0:self.width] = self.img
