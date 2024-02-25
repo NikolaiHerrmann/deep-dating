@@ -53,13 +53,6 @@ class AugDoc:
                                         wave_pattern=0,
                                         edge_effect=0)
 
-        self.folding = Folding(fold_count=5,
-                        fold_noise=0.1,
-                        fold_angle_range = (-15,15),
-                        gradient_width=(0.1, 0.2),
-                        gradient_height=(0.01, 0.1),
-                        backdrop_color = (0,0,0),
-                        )
         self.shadow_cast = ShadowCast(shadow_side = "random",
                                 shadow_vertices_range = (2, 3),
                                 shadow_width_range=(0.5, 0.8),
@@ -81,7 +74,7 @@ class AugDoc:
                                 noisy_lines_overlay_method = "ink_to_paper",
                                 )
 
-        self.letterpress = BleedThrough(intensity_range=(0.1, 0.2),
+        self.bleed_through = BleedThrough(intensity_range=(0.1, 0.15),
                                     color_range=(0, 224),
                                     ksize=(17, 17),
                                     sigmaX=0,
@@ -91,7 +84,7 @@ class AugDoc:
 
         self.jpeg = Jpeg(quality_range=(60, 95))
 
-        self.geometric = Geometric(scale=(1, 1), translation=(0, 0), flipud=1, crop=(), rotate_range=(-1, 5))
+        self.geometric = Geometric(scale=(1, 1), translation=(0, 0), flipud=1, crop=(), rotate_range=(1, 10))
 
         self.fonts = [cv2.FONT_HERSHEY_SIMPLEX, cv2.FONT_HERSHEY_PLAIN, cv2.FONT_HERSHEY_DUPLEX,
                       cv2.FONT_HERSHEY_COMPLEX, cv2.FONT_HERSHEY_TRIPLEX, cv2.FONT_HERSHEY_COMPLEX_SMALL,
@@ -124,15 +117,15 @@ class AugDoc:
 
         mask = cv2.cvtColor(img_full, cv2.COLOR_BGR2GRAY)
 
-        if random.random() > 0.8:
-            img_full, mask = self.folding(img_full, mask=mask)[:2]
-            mask = cv2.GaussianBlur(mask, (5, 5), 0)
+        # if random.random() > 0.8:
+        #     img_full, mask = self.folding(img_full, mask=mask)[:2]
+        #     mask = cv2.GaussianBlur(mask, (5, 5), 0)
         
         if random.random() > 0.6:
             img_full, mask = self.geometric(img_full, mask=mask)[:2]
 
-        if random.random() > 0.3:
-            img_full, mask = self.letterpress(img_full, mask=mask)[:2]
+        if random.random() > 0.9:
+            img_full, mask = self.bleed_through(img_full, mask=mask)[:2]
 
         if random.random() > 0.3:
             img_full, mask = self.noisy_lines(img_full, mask=mask)[:2]
@@ -163,7 +156,16 @@ class AugDoc:
         
         mask = mask.astype(np.uint8)
         mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-        mask = cv2.floodFill(mask, None, (0, 0), 255)[1]
+
+        # Make a border temporarily so floodfill works properly
+        mask_height, mask_width = mask.shape
+        mask_temp = np.zeros((mask_height + 2, mask_width + 2), dtype=np.uint8)
+        mask_temp[1:mask_height+1, 1:mask_width+1] = mask
+
+        mask_temp = cv2.floodFill(mask_temp, None, (0, 0), 255)[1]
+        mask = mask_temp[1:mask_height+1, 1:mask_width+1]
+
+        assert mask.shape == img_full.shape[:2], "mask and image are not of same size!"
 
         if self.plot:
             fig, ax = plt.subplots(1, 2)

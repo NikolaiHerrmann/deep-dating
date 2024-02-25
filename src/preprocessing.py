@@ -5,6 +5,7 @@ from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRun
 from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def preprocess_dating_cnn(dataset):
@@ -52,10 +53,10 @@ def preprocess_autoencoder():
 def preprocess_bin():
     dataset = BinDataset()
 
-    for X_train, X_val, ext in [(dataset.X_train, dataset.X_test, "_Set"), (dataset.y_train, dataset.y_test, "_Set_GT")]:
+    for X_train, X_val, ext, padding_color in [(dataset.X_train, dataset.X_test, "_Set", 0), (dataset.y_train, dataset.y_test, "_Set_GT", 255)]:
 
         preprocessor = PreprocessRunner(dataset.name, ext=ext, include_old_name=False)
-        preprocessing_func = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False).extract_patches
+        preprocessing_func = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False, padding_color=padding_color).extract_patches
 
         y = [0] * len(X_train)
         preprocessor.run(X_train, y, SetType.TRAIN, preprocessing_func)
@@ -66,9 +67,9 @@ def preprocess_bin():
 
 def test_patch_extraction():
     BinDataset()
-    exit()
+    #exit()
 
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, padding_color=0)
 
     #for dataset in load_all_dating_datasets():
     import random
@@ -76,6 +77,7 @@ def test_patch_extraction():
     #random.shuffle(x)
     #for file in x:
     file = os.path.join("/home/nikolai/Downloads/datasets/dibco/2018_img_1/5.bmp")
+    file = os.path.join("/home/nikolai/Downloads/datasets/aug_img_1/aug_29.png")
     dp.extract_patches(file)
     # plt.imshow(dp.img_bin, cmap="gray")
     # plt.show()
@@ -88,16 +90,26 @@ def test():
     c.save_to_dir(os.path.join(DATASETS_PATH, "clamm_visual"))
 
 
-def run_aug_doc():
+def run_aug_doc(n=60, test=False):
+    
+    if test:
+        aug_doc = AugDoc(plot=True)
+        while True:
+            aug_doc.make_img("")
 
-    aug_doc = AugDoc(plot=True)
+    img_aug_dir = os.path.join(DATASETS_PATH, "aug_img_1")
+    gt_aug_dir = os.path.join(DATASETS_PATH, "aug_gt_1")
+    os.makedirs(img_aug_dir, exist_ok=True)
+    os.makedirs(gt_aug_dir, exist_ok=True)
 
-    while True:
-        aug_doc.make_img("None")
+    aug_doc = AugDoc(plot=False, save_img_dir=img_aug_dir, save_gt_dir=gt_aug_dir)
+
+    for i in tqdm(range(n)):
+        aug_doc.make_img(f"aug_{i}")
 
 
 if __name__ == "__main__":
-    run_aug_doc()
+    #run_aug_doc()
 
 
     # parser = argparse.ArgumentParser()
@@ -112,7 +124,7 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
-    #preprocess_bin()
+    preprocess_bin()
     #test_patch_extraction()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()

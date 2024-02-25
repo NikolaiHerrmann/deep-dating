@@ -21,7 +21,8 @@ class PatchExtractor:
     def __init__(self, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, 
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size=256, calc_pixel_overlap=True,
-                 rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5):
+                 rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5,
+                 padding_color=0):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
@@ -33,6 +34,7 @@ class PatchExtractor:
         self.rm_white_pixel_ratio = rm_white_pixel_ratio
         self.drop_out_rate = drop_out_rate
         self.min_comp_count = min_comp_count
+        self.padding_color = padding_color
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
@@ -215,7 +217,7 @@ class PatchExtractor:
         self.padded_width = x_n * self.patch_size
         self.padded_height = y_n * self.patch_size
         
-        padded_img = np.zeros((y_n * self.patch_size, x_n * self.patch_size), dtype=np.uint8)
+        padded_img = np.full((y_n * self.patch_size, x_n * self.patch_size), fill_value=self.padding_color, dtype=np.uint8)
         padded_img[0:self.height, 0:self.width] = self.img
         if self.plot:
             plt.imshow(padded_img, cmap="gray")
