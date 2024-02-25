@@ -5,3 +5,4 @@ figs/
 runs/
 *.npy
 *.pkl
+*_SetType.*

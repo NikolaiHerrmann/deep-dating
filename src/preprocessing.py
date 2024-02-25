@@ -2,6 +2,7 @@
 import os
 from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
+from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
 import matplotlib.pyplot as plt
 
@@ -87,7 +88,18 @@ def test():
     c.save_to_dir(os.path.join(DATASETS_PATH, "clamm_visual"))
 
 
+def run_aug_doc():
+
+    aug_doc = AugDoc(plot=True)
+
+    while True:
+        aug_doc.make_img("None")
+
+
 if __name__ == "__main__":
+    run_aug_doc()
+
+
     # parser = argparse.ArgumentParser()
     # parser.add_argument("--test", help="", nargs='?', default=None)
     # args = parser.parse_args()
@@ -100,7 +112,7 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
-    preprocess_bin()
+    #preprocess_bin()
     #test_patch_extraction()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
