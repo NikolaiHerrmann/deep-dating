@@ -59,7 +59,7 @@ def train_autoencoder2():
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set")
     cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT")
-    trainer = DatingTrainer(patience=30)
+    trainer = DatingTrainer(num_epochs=200, patience=50)
 
     n_splits = 1
 
@@ -70,6 +70,7 @@ def train_autoencoder2():
         (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=n_splits))      
 
         model = Autoencoder()
+        model.load("runs/Feb25-16-43-57/model_epoch_195.pt", continue_training=True)
         train_loader = DatingDataLoader(dataset, X_train, X_train_gt, model)
         val_loader = DatingDataLoader(dataset, X_val, X_val_gt, model)
 

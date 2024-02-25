@@ -9,13 +9,15 @@ from deep_dating.preprocessing import PatchExtractor, PatchMethod
 import random
 
 model = Autoencoder()
-model.load("runs/unet1/model_epoch_169.pt", continue_training=False)
+model.load("runs/unet1/v2_model_epoch_195.pt", continue_training=False)
 
 dataset = CLaMM_Test_Task4()
 extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=True)
 X = dataset.X
-#random.shuffle(X)
+random.shuffle(X)
+random.shuffle(X)
 for x in X:
+    x = "/home/nikolai/Downloads/datasets/ICDAR2017_CLaMM_task2_task4/315556101_MS0118_0209.jpg"
     patches = extractor.extract_patches(x)
     patches = [model.transform_input(x) for x in patches]
     patches = torch.from_numpy(np.array(patches))
