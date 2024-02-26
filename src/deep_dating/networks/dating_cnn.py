@@ -20,8 +20,7 @@ class DatingCNN(nn.Module):
     IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, VGG: 224}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
-                 learning_rate=0.001, verbose=True, num_classes=None,
-                 weight_decay=1e-5):
+                 learning_rate=0.0002, verbose=True, num_classes=None):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
@@ -46,10 +45,12 @@ class DatingCNN(nn.Module):
 
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
 
-        #self.base_model.head_drop = nn.Dropout(p=0.5)
+        added_dropouts = self.add_dropout(self.base_model)
+        if self.verbose:
+            print(f"Added {added_dropouts} dropout layers")
+
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
-        self.weight_decay = None
 
         # for param in self.base_model.parameters():
         #     param.requires_grad = False
@@ -57,15 +58,32 @@ class DatingCNN(nn.Module):
         # for param in self.base_model.classif.parameters():
         #     param.requires_grad = True
 
-        self.optimizer = torch.optim.AdamW(self.base_model.parameters(), lr=learning_rate)
-        #self.optimizer = torch.optim.SGD(self.base_model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=0.9)
+        self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=learning_rate)
         
-        self.transforms = transforms.Compose([transforms.ToTensor(),
-                                              #transforms.Resize(self.input_size, antialias=True),
-                                              transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                                                                   std=[0.229, 0.224, 0.225])])
+        self.transforms = transforms.Compose([
+            transforms.ToTensor(),
+            #transforms.Resize(self.input_size, antialias=True),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
         self.starting_weights = model_name if pretrained else None
         self.feature_extractor = False
+
+    def add_dropout(self, model, drop_block_name="drop_block", p_value=0.5):
+        """
+        https://discuss.pytorch.org/t/where-and-how-to-add-dropout-in-resnet18/12869/3
+        """
+        added_dropouts = 0
+
+        for name, module in model.named_children():
+            if len(list(module.children())) > 0:
+                added_dropouts += self.add_dropout(module)
+            if name == drop_block_name:
+                dropout = nn.Dropout2d(p=p_value)
+                setattr(model, name, dropout)
+                added_dropouts += 1
+
+        return added_dropouts
 
     def forward(self, x):
         return self.final_activation(self.base_model(x))
@@ -109,3 +127,7 @@ class DatingCNN(nn.Module):
     def summary(self):
         #summary(self.base_model, (3, self.input_size, self.input_size))
         pass
+
+if __name__ == "__main__":
+    model = DatingCNN(model_name="resnet50", input_size=256, num_classes=11)
+    model.summary()

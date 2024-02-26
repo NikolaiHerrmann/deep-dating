@@ -9,18 +9,14 @@ from preprocessing import preprocess_autoencoder, preprocess_dating_cnn
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
-    #preprocess_autoencoder(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
-    #preprocess_dating_cnn(MPS())
-
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_Auto")
-    trainer = DatingTrainer(num_epochs=100, patience=5)
+    cross_val = CrossVal(dataset)
+    trainer = DatingTrainer(num_epochs=100, patience=20)
     n_splits = 1
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name="inception_resnet_v2", num_classes=15)
-        #model.load("runs/Feb9-12-7-17/model_epoch_0.pt", continue_training=True)
+        model = DatingCNN(model_name="resnet_50", num_classes=15)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model)
@@ -79,5 +75,5 @@ def train_autoencoder2():
 
 
 if __name__ == "__main__":
-    #train_dating_cnn()
-    train_autoencoder2()
+    train_dating_cnn()
+    #train_autoencoder2()

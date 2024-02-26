@@ -4,7 +4,7 @@ import cv2
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from augraphy import *
+from augraphy import BookBinding, PageBorder, BadPhotoCopy, ShadowCast, NoisyLines, BleedThrough, Jpeg, Geometric
 from lorem_text import lorem
 from deep_dating.util import save_figure
 
@@ -116,10 +116,6 @@ class AugDoc:
         img_full[50:height-50, 50:width-50] = img
 
         mask = cv2.cvtColor(img_full, cv2.COLOR_BGR2GRAY)
-
-        # if random.random() > 0.8:
-        #     img_full, mask = self.folding(img_full, mask=mask)[:2]
-        #     mask = cv2.GaussianBlur(mask, (5, 5), 0)
         
         if random.random() > 0.6:
             img_full, mask = self.geometric(img_full, mask=mask)[:2]

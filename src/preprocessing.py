@@ -109,7 +109,7 @@ def run_aug_doc(n=60, test=False):
 
 
 if __name__ == "__main__":
-    #run_aug_doc()
+    run_aug_doc(test=True)
 
 
     # parser = argparse.ArgumentParser()
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task3().size)
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
-    preprocess_bin()
+    #preprocess_bin()
     #test_patch_extraction()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()

@@ -12,13 +12,15 @@ from deep_dating.util import get_torch_device
 
 class Autoencoder(nn.Module):
 
-    def __init__(self, learning_rate=0.0002, input_size=256):
+    def __init__(self, learning_rate=0.0002, input_size=256, verbose=True):
         super(Autoencoder, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
         self.model_type = ModelType.AUTOENCODER
         self.input_size = input_size
+        self.verbose = verbose
 
+        # Encoder
         self.e1 = nn.Conv2d(1, 64, kernel_size=4, stride=2, padding=1)
         self.e2 = nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1)
         self.e2_batch = nn.BatchNorm2d(128)
@@ -41,7 +43,7 @@ class Autoencoder(nn.Module):
         self.e8 = nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1)
         self.e8_batch = nn.BatchNorm2d(512)
 
-        #
+        # Decoder
         self.d1 = nn.ConvTranspose2d(512, 512, kernel_size=4, stride=2, padding=1)
         self.d1_batch = nn.BatchNorm2d(512)
 
@@ -65,10 +67,9 @@ class Autoencoder(nn.Module):
 
         self.d8 = nn.ConvTranspose2d(128, 1, kernel_size=4, stride=2, padding=1)
 
-
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         self.criterion = nn.L1Loss()
-        #self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=15, gamma=0.1)
+
         self.metrics = None
         self.classification = False
         self.training_mode = True
@@ -113,12 +114,6 @@ class Autoencoder(nn.Module):
 
         return torch.tanh(xx8)
     
-    def extract_feature(self, x):
-        return self.encoder(x)
-    
-    def reconstruct_feature(self, x):
-        return self.decoder(x)
-    
     def transform_img(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         return self.transform_input(img)
@@ -142,8 +137,8 @@ class Autoencoder(nn.Module):
             self.training_mode = False
             self.eval()
 
-        #if self.verbose:
-        print("Model loading completed!")
+        if self.verbose:
+            print("Model loading completed!")
 
     def summary(self):
         # summary(self.encoder, (1, 256, 256))
