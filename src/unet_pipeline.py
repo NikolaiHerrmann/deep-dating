@@ -6,23 +6,29 @@ from deep_dating.networks import Autoencoder
 from deep_dating.util import save_figure, plt_clear
 from deep_dating.datasets import MPS, ScribbleLens, CLaMM, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
+from deep_dating.prediction import AutoencoderPredictor
 import random
 
-model = Autoencoder()
-model.load("runs/unet1/v2_model_epoch_168.pt", continue_training=False)
+# model = Autoencoder()
+# model.load("runs/unet1/v2_model_epoch_168.pt", continue_training=False)
 
-dataset = CLaMM()
-extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=True)
+dataset = CLaMM_Test_Task4()
+#extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=True)
 X = dataset.X
 random.shuffle(X)
 random.shuffle(X)
 random.shuffle(X)
 random.shuffle(X)
+random.shuffle(X)
+
+predictor = AutoencoderPredictor()
 
 for x in X:
     #x = "/home/nikolai/Downloads/datasets/ICDAR2017_CLaMM_task2_task4/315556101_MS0118_0209.jpg"
-    patches = extractor.extract_patches(x)
-    print(len(patches))
+    # patches = extractor.extract_patches(x)
+    # print(len(patches))
+    predictor.run(x, plot=True)
+    continue
     exit()
     patches = [model.transform_input(x) for x in patches]
     patches = torch.from_numpy(np.array(patches))

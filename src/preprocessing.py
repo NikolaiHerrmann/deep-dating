@@ -109,7 +109,7 @@ def run_aug_doc(n=60, test=False):
 
 
 if __name__ == "__main__":
-    run_aug_doc(test=True)
+    #run_aug_doc(test=True)
 
 
     # parser = argparse.ArgumentParser()
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     #test_patch_extraction()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
-    #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
 

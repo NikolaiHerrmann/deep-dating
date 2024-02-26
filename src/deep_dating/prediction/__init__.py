@@ -1,1 +1,2 @@
-from .dating_predictor import DatingPredictor
+from .dating_predictor import *
+from .autoencoder_predictor import *

@@ -3,8 +3,8 @@ from deep_dating.util import get_torch_device
 from deep_dating.networks import ModelType
 from deep_dating.metrics import DatingMetrics
 import torch
-import cv2
 import torch.nn as nn
+from PIL import Image
 
 from torchvision import transforms
 from torchsummary import summary
@@ -15,9 +15,11 @@ class DatingCNN(nn.Module):
 
     INCEPTION = "inception_resnet_v2"
     RESNET50 = "resnet50"
-    #VGG19 = "vgg19.tv_in1k"
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256}
-    MODEL_DROP_OUT = {INCEPTION: ("drop", "head_drop"), RESNET50: ("drop_block", None)}
+    EFFICIENTNET = "efficientnet_b3"
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET: 300}
+    MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
+                      RESNET50: [("drop_block", 0.3, True)],
+                      EFFICIENTNET: [("drop", 0.3, True), ("drop_path", 0.2, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
@@ -46,20 +48,20 @@ class DatingCNN(nn.Module):
             print("Model doing:", ("classification" if self.classification else "regression"))
 
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
-
+        
         if self.dropout:
-            drop_conv, drop_head = self.MODEL_DROP_OUT[self.model_name]
-            added_dropouts = self.add_dropout(self.base_model, drop_block_name=drop_conv, p_value=0.2, drop_2d=True)
-            added_dropouts += self.add_dropout(self.base_model, drop_block_name=drop_head, p_value=0.2, drop_2d=False)
-            if self.verbose:
-                print(f"Added {added_dropouts} dropout layers")
+            num_dropouts = 0
+            for block_name, p_value, is_2d in self.MODEL_DROP_OUT[self.model_name]:
+                num_dropouts += self.add_dropout(self.base_model, drop_block_name=block_name, p_value=p_value, drop_2d=is_2d)
+        if self.verbose:
+            print(f"Added {num_dropouts} dropout layers")
 
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
         self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=learning_rate)
         
         self.transforms = transforms.Compose([
-            #transforms.Resize(self.input_size, antialias=True),
+            transforms.Resize(self.input_size, antialias=True),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
@@ -67,7 +69,7 @@ class DatingCNN(nn.Module):
         self.starting_weights = model_name if pretrained else None
         self.feature_extractor = False
 
-    def add_dropout(self, model, drop_block_name="drop_block", p_value=0.5, drop_2d=True):
+    def add_dropout(self, model, drop_block_name, p_value, drop_2d):
         """
         https://discuss.pytorch.org/t/where-and-how-to-add-dropout-in-resnet18/12869/3
         """
@@ -77,7 +79,7 @@ class DatingCNN(nn.Module):
             for name, module in model.named_children():
 
                 if len(list(module.children())) > 0:
-                    added_dropouts += self.add_dropout(module, drop_block_name=drop_block_name, p_value=p_value, drop_2d=drop_2d)
+                    added_dropouts += self.add_dropout(module, drop_block_name, p_value, drop_2d)
                 if name == drop_block_name:
                     dropout = nn.Dropout2d(p=p_value) if drop_2d else nn.Dropout(p=p_value)
                     setattr(model, name, dropout)
@@ -117,12 +119,13 @@ class DatingCNN(nn.Module):
             print("Model loading completed!")
 
     def transform_img(self, img_path):
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        #img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        img = Image.open(img_path).convert("RGB")
         return self.apply_transforms(img)
     
     def apply_transforms(self, img):
-        assert img.shape == (self.input_size, self.input_size), "input has wrong size!"
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        #assert img.shape == (self.input_size, self.input_size), "input has wrong size!"
+        #img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return self.transforms(img)
     
     def summary(self):
@@ -130,5 +133,5 @@ class DatingCNN(nn.Module):
         pass
 
 if __name__ == "__main__":
-    model = DatingCNN(model_name="inception_resnet_v2", input_size=299, num_classes=11)
+    model = DatingCNN(model_name="efficientnet_b3", num_classes=11)
     model.summary()

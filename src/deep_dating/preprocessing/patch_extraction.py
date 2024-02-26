@@ -28,7 +28,7 @@ class PatchExtractor:
         self.line_peak_distance = line_peak_distance
         self.num_random_patches = num_random_patches
         self.plot = plot
-        self.extra_draw_info = None
+        self.extra_draw_info = []
         self.patch_size = patch_size
         self.calc_pixel_overlap = calc_pixel_overlap
         self.rm_white_pixel_ratio = rm_white_pixel_ratio
@@ -41,14 +41,15 @@ class PatchExtractor:
                              PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines,
                              PatchMethod.SLIDING_WINDOW: self._extract_sliding_window}
     
-    def extract_patches(self, img_path, method=None):
+    def extract_patches(self, img_path, method=None, plot=None):
+        if plot is not None:
+            self.plot = plot
         self._read_img(img_path)
         if method:
             self.method = method
 
         self.patch_ls = []
-        if self.plot:
-            self.extra_draw_info = []
+        self.extra_draw_info = []
 
         func = self.method_funcs.get(self.method)
         if not func:
@@ -77,6 +78,8 @@ class PatchExtractor:
         self.height, self.width = self.img.shape
 
         self.img_bin = binarize_img(self.img, show=False)
+        if self.plot:
+            self.img_bin_otsu = binarize_img(self.img, otsu=True, show=False)
 
         if self.plot:
             plt.imshow(self.img, cmap="gray")
@@ -125,10 +128,11 @@ class PatchExtractor:
     def _draw_rect(self, x, y, color="blue"):
         self.extra_draw_info.append((x, y, self.patch_size, self.patch_size))
 
-        rect = plt_patches.Rectangle((x, y), self.patch_size, self.patch_size, 
-                                     linewidth=2, edgecolor=color, alpha=0.4, 
-                                     facecolor=color, linestyle="dotted")
-        plt.gca().add_patch(rect)
+        if self.plot:
+            rect = plt_patches.Rectangle((x, y), self.patch_size, self.patch_size, 
+                                        linewidth=2, edgecolor=color, alpha=0.4, 
+                                        facecolor=color, linestyle="dotted")
+            plt.gca().add_patch(rect)
 
     def _append_patch(self, patch, x, y):
         bin_patch = self.img_bin[y:y+self.patch_size, x:x+self.patch_size]
@@ -140,9 +144,7 @@ class PatchExtractor:
             return
 
         self.patch_ls.append(patch)
-
-        if self.plot:
-            self._draw_rect(x, y)
+        self._draw_rect(x, y)
 
     def _extract_random(self):
         for _ in range(self.num_random_patches):
@@ -230,9 +232,7 @@ class PatchExtractor:
                 
                 patch = padded_img[y:y+self.patch_size, x:x+self.patch_size]
                 self.patch_ls.append(patch)
-
-                if self.plot:
-                    self._draw_rect(x, y)
+                self._draw_rect(x, y)
 
                 x += self.patch_size
 
