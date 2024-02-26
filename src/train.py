@@ -17,6 +17,7 @@ def train_dating_cnn():
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name="efficientnet_b4", num_classes=15, dropout=True)
+        model.load("runs/Feb26-19-40-59/model_epoch_7.pt", continue_training=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model)
