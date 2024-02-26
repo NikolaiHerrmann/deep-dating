@@ -59,7 +59,7 @@ class DatingCNN(nn.Module):
         self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=learning_rate)
         
         self.transforms = transforms.Compose([
-            transforms.Resize(self.input_size, antialias=True),
+            #transforms.Resize(self.input_size, antialias=True),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
