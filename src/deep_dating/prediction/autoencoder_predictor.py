@@ -23,8 +23,8 @@ class AutoencoderPredictor:
         def __len__(self):
             return len(self.patches)
 
-    def __init__(self, model_path="runs/unet1/v2_model_epoch_168.pt"):
-        self.model = Autoencoder()
+    def __init__(self, model_path="runs/unet1/v2_model_epoch_168.pt", verbose=True):
+        self.model = Autoencoder(verbose=verbose)
         self.model.load(model_path, continue_training=False)
         self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False)
         self.device = get_torch_device()

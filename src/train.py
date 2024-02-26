@@ -16,7 +16,7 @@ def train_dating_cnn():
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name="efficientnet_b4", num_classes=15, dropout=False)
+        model = DatingCNN(model_name="efficientnet_b4", num_classes=15, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model)

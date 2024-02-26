@@ -12,14 +12,14 @@ import random
 # model = Autoencoder()
 # model.load("runs/unet1/v2_model_epoch_168.pt", continue_training=False)
 
-dataset = CLaMM_Test_Task4()
+dataset = MPS()
 #extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=True)
 X = dataset.X
-random.shuffle(X)
-random.shuffle(X)
-random.shuffle(X)
-random.shuffle(X)
-random.shuffle(X)
+# random.shuffle(X)
+# random.shuffle(X)
+# random.shuffle(X)
+# random.shuffle(X)
+# random.shuffle(X)
 
 predictor = AutoencoderPredictor()
 

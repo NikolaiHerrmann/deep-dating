@@ -1,5 +1,6 @@
 
 import os
+import cv2
 from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
@@ -66,33 +67,18 @@ def preprocess_bin():
         preprocessor.run(X_val, y, SetType.VAL, preprocessing_func)
 
 
-def test_patch_extraction():
-    BinDataset()
-    #exit()
-
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True)
-
-    #for dataset in load_all_dating_datasets():
-    import random
-    x = CLaMM_Test_Task4().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+def run_binarization():
+    x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
     predictor = AutoencoderPredictor()
-    #random.shuffle(x)
-    for file in x:
-    # file = os.path.join("/home/nikolai/Downloads/datasets/dibco/2018_img_1/5.bmp")
-    # file = os.path.join("/home/nikolai/Downloads/datasets/aug_img_1/aug_29.png")
-        file = predictor.run(file)
-        dp.extract_patches(file, read=False)
-        # plt.imshow(dp.img_bin, cmap="gray")
-        # plt.show()
-        dp.save_plot(show=True)
-        #break
+    save_path = os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")
+    os.makedirs(save_path, exist_ok=True)
+    
+    for img_path in tqdm(x):
+        img = predictor.run(img_path)
+        img_name = os.path.basename(img_path)
 
-        # if self.binarize_everything:
-        #     predictor = AutoencoderPredictor()
-        #     self.img = predictor.run(path)
-        #     self.img_org = self.img
-        #     self.img_bin = self.img
-        # else:
+        path = os.path.join(save_path, img_name)
+        cv2.imwrite(path, img)
             
 
 
@@ -136,7 +122,7 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
     #preprocess_bin()
-    test_patch_extraction()
+    run_binarization()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))

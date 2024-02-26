@@ -41,11 +41,11 @@ class PatchExtractor:
                              PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines,
                              PatchMethod.SLIDING_WINDOW: self._extract_sliding_window}
     
-    def extract_patches(self, img_obj, method=None, plot=None, read=True):
+    def extract_patches(self, img_obj, method=None, plot=None):
         if plot is not None:
             self.plot = plot
 
-        self._read_img(img_obj, read)
+        self._read_img(img_obj)
 
         if method:
             self.method = method
@@ -74,17 +74,12 @@ class PatchExtractor:
             print("No extra draw info was saved, set plot=True")
         return self.extra_draw_info
 
-    def _read_img(self, img_obj, read):
-        if not read:
-            self.img = img_obj
-            self.img_bin = img_obj
-            self.img_org = img_obj
-        else:
-            self.img_org = cv2.imread(img_obj)
-            self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
-            self.img_bin = binarize_img(self.img, show=False)
-            if self.plot:
-                self.img_bin_otsu = binarize_img(self.img, otsu=True, show=False)
+    def _read_img(self, img_obj):
+        self.img_org = cv2.imread(img_obj)
+        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
+        self.img_bin = binarize_img(self.img, show=False)
+        if self.plot:
+            self.img_bin_otsu = binarize_img(self.img, otsu=True, show=False)
 
         self.height, self.width = self.img.shape
 
