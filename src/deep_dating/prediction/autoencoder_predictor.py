@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from deep_dating.networks import Autoencoder
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
-from deep_dating.util import plt_clear
+from deep_dating.util import plt_clear, get_torch_device
 from torch.utils.data import Dataset, DataLoader
 
 
@@ -27,15 +27,16 @@ class AutoencoderPredictor:
         self.model = Autoencoder()
         self.model.load(model_path, continue_training=False)
         self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False)
-        
-    def run(self, img_path, plot=True):
+        self.device = get_torch_device()
+        self.model.to(self.device)
+
+    def run(self, img_path, plot=False):
         patches = self.extractor.extract_patches(img_path, plot=plot)
-
         data_loader = DataLoader(self.PatchDataset(patches, self.model), batch_size=32, shuffle=False, num_workers=7)
-
         outputs = []
 
         for input in data_loader:
+            input = input.to(self.device)
             output = self.model(input)
             output = output.cpu().detach().numpy()
             outputs.append(output)
@@ -43,7 +44,6 @@ class AutoencoderPredictor:
         outputs = np.concatenate(outputs)
           
         img = np.zeros((self.extractor.padded_height, self.extractor.padded_width))
-
         patch_drawing_info = self.extractor.get_extra_draw_info()
 
         for i, (x, y, w, h) in enumerate(patch_drawing_info):
@@ -53,6 +53,7 @@ class AutoencoderPredictor:
         img = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
         img = img.astype(np.uint8)
+        assert img.shape == self.extractor.img.shape, "converted image not of original size!"
 
         if plot:
             plt_clear()
@@ -70,5 +71,4 @@ class AutoencoderPredictor:
             fig.tight_layout()
             plt.show()
 
-        assert img.shape == self.extractor.img.shape, "Converted image not of original size!"
         return img

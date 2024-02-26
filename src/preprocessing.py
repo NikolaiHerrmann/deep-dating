@@ -4,6 +4,7 @@ from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, 
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
+from deep_dating.prediction import AutoencoderPredictor
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -69,20 +70,30 @@ def test_patch_extraction():
     BinDataset()
     #exit()
 
-    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, padding_color=0)
+    dp = PatchExtractor(method=PatchMethod.SLIDING_WINDOW_LINES, plot=True)
 
     #for dataset in load_all_dating_datasets():
     import random
-    #x = CLaMM_Test_Task4().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    x = CLaMM_Test_Task4().X #(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    predictor = AutoencoderPredictor()
     #random.shuffle(x)
-    #for file in x:
-    file = os.path.join("/home/nikolai/Downloads/datasets/dibco/2018_img_1/5.bmp")
-    file = os.path.join("/home/nikolai/Downloads/datasets/aug_img_1/aug_29.png")
-    dp.extract_patches(file)
-    # plt.imshow(dp.img_bin, cmap="gray")
-    # plt.show()
-    dp.save_plot(show=True)
+    for file in x:
+    # file = os.path.join("/home/nikolai/Downloads/datasets/dibco/2018_img_1/5.bmp")
+    # file = os.path.join("/home/nikolai/Downloads/datasets/aug_img_1/aug_29.png")
+        file = predictor.run(file)
+        dp.extract_patches(file, read=False)
+        # plt.imshow(dp.img_bin, cmap="gray")
+        # plt.show()
+        dp.save_plot(show=True)
         #break
+
+        # if self.binarize_everything:
+        #     predictor = AutoencoderPredictor()
+        #     self.img = predictor.run(path)
+        #     self.img_org = self.img
+        #     self.img_bin = self.img
+        # else:
+            
 
 
 def test():
@@ -125,10 +136,10 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
     #preprocess_bin()
-    #test_patch_extraction()
+    test_patch_extraction()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
-    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
+    #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
 
