@@ -5,7 +5,7 @@ import copy
 import torch.nn as nn
 from torch.nn.functional import leaky_relu, dropout2d
 from torchvision import transforms
-from torchsummary import summary
+from torchinfo import summary
 from deep_dating.networks import ModelType
 from deep_dating.util import get_torch_device
 
@@ -140,11 +140,8 @@ class Autoencoder(nn.Module):
         if self.verbose:
             print("Model loading completed!")
 
-    def summary(self):
-        # summary(self.encoder, (1, 256, 256))
-        # summary(self.decoder, (512, 4, 4)) #(256, 32, 32)
-        #summary(self, (1, 256, 256))
-        pass
+    def summary(self, batch_size=32):
+        summary(self, input_size=(batch_size, 1, self.input_size, self.input_size), device=get_torch_device(self.verbose))
     
 
 if __name__ == "__main__":

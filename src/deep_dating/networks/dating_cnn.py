@@ -1,14 +1,13 @@
 
+import timm
+import torch
+import torch.nn as nn
+from torchvision import transforms
+from torchinfo import summary
+from PIL import Image
 from deep_dating.util import get_torch_device
 from deep_dating.networks import ModelType
 from deep_dating.metrics import DatingMetrics
-import torch
-import torch.nn as nn
-from PIL import Image
-
-from torchvision import transforms
-from torchsummary import summary
-import timm
 
 
 class DatingCNN(nn.Module):
@@ -126,10 +125,10 @@ class DatingCNN(nn.Module):
         #img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return self.transforms(img)
     
-    def summary(self):
-        #summary(self.base_model, (3, self.input_size, self.input_size))
-        pass
+    def summary(self, batch_size=32):
+        summary(self.base_model, input_size=(batch_size, 3, self.input_size, self.input_size), device=get_torch_device(self.verbose))
+
 
 if __name__ == "__main__":
-    model = DatingCNN(model_name="efficientnet_b3", num_classes=11)
+    model = DatingCNN(model_name="efficientnet_b4", num_classes=11)
     model.summary()
