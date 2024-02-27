@@ -1,7 +1,7 @@
 
 import cv2
 import numpy as np
-from deep_dating.util import dating_util
+from deep_dating.util import save_figure
 from deep_dating.preprocessing import binarize_img
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
@@ -22,7 +22,7 @@ class PatchExtractor:
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size=256, calc_pixel_overlap=True,
                  rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5,
-                 padding_color=0):
+                 padding_color=0, is_binary=False):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
@@ -35,6 +35,7 @@ class PatchExtractor:
         self.drop_out_rate = drop_out_rate
         self.min_comp_count = min_comp_count
         self.padding_color = padding_color
+        self.is_binary = is_binary
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
@@ -67,7 +68,7 @@ class PatchExtractor:
             return
         if not title:
             title = str(self.method)
-        dating_util.save_figure(title, show=show)
+        save_figure(title, show=show)
 
     def get_extra_draw_info(self):
         if not self.extra_draw_info:
@@ -77,9 +78,16 @@ class PatchExtractor:
     def _read_img(self, img_obj):
         self.img_org = cv2.imread(img_obj)
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
-        self.img_bin = binarize_img(self.img, show=False)
-        if self.plot:
-            self.img_bin_otsu = binarize_img(self.img, otsu=True, show=False)
+
+        if self.is_binary:
+            unique_vals = np.unique(self.img)
+            assert tuple(unique_vals) == (0, 255), f"image {img_obj} does not seem binary, found pixel values: {unique_vals}!"
+
+            self.img_bin = (self.img / 255).astype(np.uint8)
+        else:
+            self.img_bin = binarize_img(self.img, show=False)
+            if self.plot:
+                self.img_bin_otsu = binarize_img(self.img, otsu=True, show=False)
 
         self.height, self.width = self.img.shape
 
@@ -192,7 +200,7 @@ class PatchExtractor:
         x = x_init
         y = y_init
 
-        # Randomly filter out n% of images
+        # Randomly filter out n # of images
         num_patches = y_n * x_n
         num_patches_with_drop_out = np.round(num_patches * (1 - self.drop_out_rate)).astype(int)
         valid_patch_idxs = np.random.choice(num_patches, size=num_patches_with_drop_out, replace=False).tolist()

@@ -1,6 +1,7 @@
 
 import os
 import cv2
+import glob
 from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
@@ -13,9 +14,9 @@ from tqdm import tqdm
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, 80, 400, test_size=0) #150 # 50
-    preprocessor = PreprocessRunner(dataset.name)
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
+    splitter = DatasetSplitter(dataset, None, 400, test_size=0, read_aug=True, binary=True) #150 # 50
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Bin")
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
@@ -35,21 +36,21 @@ def preprocess_dating_cnn_test(dataset):
     preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
 
-def preprocess_autoencoder():
-    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
+# def preprocess_autoencoder():
+#     dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+#     splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
 
-    for i in range(1):
-        binarize = i == 1
-        name_ext = "_Bin" if binarize else ""
+#     for i in range(1):
+#         binarize = i == 1
+#         name_ext = "_Bin" if binarize else ""
 
-        preprocessor = PreprocessRunner(dataset.name, ext=("_Set_Auto" + name_ext))
-        preprocessor_func = ImageSplitter(plot=False, binarize=binarize).split
+#         preprocessor = PreprocessRunner(dataset.name, ext=("_Set_Auto" + name_ext))
+#         preprocessor_func = ImageSplitter(plot=False, binarize=binarize).split
 
-        for set_type in [SetType.TRAIN, SetType.VAL]:
-            X, y = splitter.get_data(set_type)
-            preprocessor.run(X, y, set_type, preprocessor_func)
-            print("Image splitting done for", set_type)
+#         for set_type in [SetType.TRAIN, SetType.VAL]:
+#             X, y = splitter.get_data(set_type)
+#             preprocessor.run(X, y, set_type, preprocessor_func)
+#             print("Image splitting done for", set_type)
 
 
 def preprocess_bin():
@@ -68,9 +69,12 @@ def preprocess_bin():
 
 
 def run_binarization():
-    x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
+    #x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
     predictor = AutoencoderPredictor()
-    save_path = os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")
+    #save_path = os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")
+
+    x = glob.glob(os.path.join(DATASETS_PATH, "CLAMM_Aug", "*.ppm"))
+    save_path = os.path.join(DATASETS_PATH, "CLAMM_Aug_Bin")
     os.makedirs(save_path, exist_ok=True)
     
     for img_path in tqdm(x):
@@ -78,16 +82,21 @@ def run_binarization():
         img_name = os.path.basename(img_path)
 
         path = os.path.join(save_path, img_name)
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         cv2.imwrite(path, img)
             
 
 
-def test():
-    c = CLaMM()
-    c.save_to_dir(os.path.join(DATASETS_PATH, "clamm_visual"))
+def test_patch_extraction():
+    X = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")).X
+    patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True)
+
+    for x in X:
+        patch_extractor.extract_patches(x)
+        patch_extractor.save_plot(show=True)
 
 
-def run_aug_doc(n=60, test=False):
+def run_aug_doc(n=60, test=True):
     
     if test:
         aug_doc = AugDoc(plot=True)
@@ -122,10 +131,12 @@ if __name__ == "__main__":
     # print(CLaMM_Test_Task4().size)
     #preprocess_dating_cnn_test()
     #preprocess_bin()
-    run_binarization()
+    #run_binarization()
     #preprocess_dating_cnn_test(CLaMM_Test_Task3())
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
+    
+    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")))
 

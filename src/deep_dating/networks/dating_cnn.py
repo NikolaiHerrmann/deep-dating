@@ -18,7 +18,7 @@ class DatingCNN(nn.Module):
     EFFICIENTNET = "efficientnet_b4"
     IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET: 320}
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
-                      RESNET50: [("drop_block", 0.3, True)],
+                      RESNET50: [("drop_block", 0.2, True)],
                       EFFICIENTNET: [("drop", 0.2, True)]}#, ("drop_path", 0.1, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
@@ -32,7 +32,7 @@ class DatingCNN(nn.Module):
         self.dropout = dropout
         self.verbose = verbose
 
-        if num_classes is None:
+        if num_classes is None or num_classes == 1:
             num_classes = 1
             self.classification = False
             self.criterion = nn.MSELoss()
@@ -58,7 +58,7 @@ class DatingCNN(nn.Module):
 
         self.input_size = input_size if input_size else self.IMAGE_NET_MODELS[self.model_name]
         self.learning_rate = learning_rate
-        self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=self.learning_rate)
         
         self.transforms = transforms.Compose([
             transforms.Resize(self.input_size, antialias=True, interpolation=transforms.InterpolationMode.BICUBIC),

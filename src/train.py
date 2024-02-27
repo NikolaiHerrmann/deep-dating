@@ -3,21 +3,20 @@ import os
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal, CLaMM, MPS
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
 from deep_dating.util import DATASETS_PATH
-from preprocessing import preprocess_autoencoder, preprocess_dating_cnn
 
 
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
-    cross_val = CrossVal(dataset)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_Bin")
     trainer = DatingTrainer(num_epochs=100, patience=20)
     n_splits = 1
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name="efficientnet_b4", num_classes=15, dropout=True)
-        model.load("runs/Feb26-19-40-59/model_epoch_7.pt", continue_training=True)
+        model = DatingCNN(model_name="inception_resnet_v2", num_classes=15, dropout=True)
+        #model.load("runs/Feb26-19-40-59/model_epoch_7.pt", continue_training=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model)
