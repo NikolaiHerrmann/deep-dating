@@ -22,7 +22,7 @@ class PatchExtractor:
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size=256, calc_pixel_overlap=True,
                  rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5,
-                 padding_color=0, is_binary=False):
+                 padding_color=0, is_binary=False, show_lines_in_plot=True):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
@@ -36,6 +36,7 @@ class PatchExtractor:
         self.min_comp_count = min_comp_count
         self.padding_color = padding_color
         self.is_binary = is_binary
+        self.show_lines_in_plot = show_lines_in_plot
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
@@ -127,7 +128,7 @@ class PatchExtractor:
             plt.plot(self.peaks, hist[self.peaks], "x", "orange")
             plt.show()
 
-        if self.plot:
+        if self.plot and self.show_lines_in_plot:
             for x in self.peaks:
                 plt.axhline(x, color="orangered", alpha=0.5, zorder=5)
 

@@ -1,4 +1,5 @@
 
+import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,16 +24,22 @@ class AutoencoderPredictor:
         def __len__(self):
             return len(self.patches)
 
-    def __init__(self, model_path="runs/unet1/v2_model_epoch_168.pt", verbose=True):
-        self.model = Autoencoder(verbose=verbose)
+    def __init__(self, model_path="runs/unet1/v2_model_epoch_168.pt", 
+                 save_path=None, batch_size=32, num_workers=0, verbose=True):
+        self.verbose = verbose
+        self.model = Autoencoder(verbose=self.verbose)
         self.model.load(model_path, continue_training=False)
         self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False)
-        self.device = get_torch_device()
+        self.device = get_torch_device(self.verbose)
         self.model.to(self.device)
+        self.save_path = save_path
+        self.batch_size = batch_size
+        self.num_workers = num_workers
 
     def run(self, img_path, plot=False):
         patches = self.extractor.extract_patches(img_path, plot=plot)
-        data_loader = DataLoader(self.PatchDataset(patches, self.model), batch_size=32, shuffle=False, num_workers=7)
+        dataset = self.PatchDataset(patches, self.model)
+        data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
         outputs = []
 
         for input in data_loader:
@@ -70,5 +77,13 @@ class AutoencoderPredictor:
 
             fig.tight_layout()
             plt.show()
+
+        if self.save_path:
+            img_name = os.path.basename(img_path)
+            path = os.path.join(self.save_path, img_name)
+            img_save = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            cv2.imwrite(path, img_save)
+            if self.verbose:
+                print("Saved image")
 
         return img

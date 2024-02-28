@@ -48,8 +48,6 @@ def train_autoencoder():
         trainer.train(model, train_loader, val_loader, i)
 
 def train_autoencoder2():
-    
-    #preprocess_autoencoder()
 
     dataset = DatasetName.DIBCO
 

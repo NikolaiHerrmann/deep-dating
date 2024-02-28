@@ -69,27 +69,40 @@ def preprocess_bin():
 
 
 def run_binarization():
+    from torch.multiprocessing import Pool, set_start_method
+    #torch.set_num_threads(1)
+    set_start_method('spawn', force=True)
     #x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
-    predictor = AutoencoderPredictor()
+    
     #save_path = os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")
 
     x = glob.glob(os.path.join(DATASETS_PATH, "CLAMM_Aug", "*.ppm"))
-    save_path = os.path.join(DATASETS_PATH, "CLAMM_Aug_Bin")
+    save_path = os.path.join(DATASETS_PATH, "CLAMM_Aug_Bin_Test")
     os.makedirs(save_path, exist_ok=True)
     
-    for img_path in tqdm(x):
-        img = predictor.run(img_path)
-        img_name = os.path.basename(img_path)
+    predictor = AutoencoderPredictor(save_path=save_path)
 
-        path = os.path.join(save_path, img_name)
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        cv2.imwrite(path, img)
+    with Pool(8) as pool:
+        pool.map(predictor.run, x)
+
+    # for img_path in tqdm(x):
+    #     img = predictor.run(img_path)
+    #     img_name = os.path.basename(img_path)
+
+    #     path = os.path.join(save_path, img_name)
+    #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    #     cv2.imwrite(path, img)
             
 
 
 def test_patch_extraction():
-    X = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")).X
-    patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True)
+    #X = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")).X
+    import random
+    random.seed(43)
+    X = glob.glob("../../datasets/CLaMM_Training_Clean/*.tif")
+    #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    random.shuffle(X)
+    patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, show_lines_in_plot=False)
 
     for x in X:
         patch_extractor.extract_patches(x)
@@ -123,6 +136,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # if args.test:
+    run_binarization()
     #test_patch_extraction()
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
@@ -138,5 +152,5 @@ if __name__ == "__main__":
     #preprocess_autoencoder()
     #preprocess_dating_cnn(MPS())
     
-    preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")))
+    #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")))
 
