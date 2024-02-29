@@ -1,7 +1,6 @@
 
 import cv2
 import torch
-import copy
 import torch.nn as nn
 from torch.nn.functional import leaky_relu, dropout2d
 from torchvision import transforms
@@ -11,6 +10,12 @@ from deep_dating.util import get_torch_device
 
 
 class Autoencoder(nn.Module):
+    """
+    Implements BiNet by Dhali, Maruf A., Jan Willem de Wit, and 
+    Lambert Schomaker (2019). See paper titled "BiNet: Degraded-manuscript 
+    binarization in diverse document textures and layouts using deep 
+    encoder-decoder networks." at https://arxiv.org/abs/1911.07930.
+    """
 
     def __init__(self, learning_rate=0.0002, input_size=256, verbose=True):
         super(Autoencoder, self).__init__()
@@ -121,20 +126,14 @@ class Autoencoder(nn.Module):
     def save(self, path):
         torch.save(self.state_dict(), path)
 
-    def get_state(self):
-        return copy.deepcopy(self.state_dict())
-    
-    def save_state(self, path, state):
-        torch.save(state, path)
-
     def load(self, path, continue_training):
         self.load_state_dict(torch.load(path, map_location=get_torch_device()))
+        self.training_mode = continue_training
 
         if continue_training:
             self.starting_weights = path
             self.train()
         else:
-            self.training_mode = False
             self.eval()
 
         if self.verbose:

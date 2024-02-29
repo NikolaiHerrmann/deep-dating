@@ -3,17 +3,15 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class ImageSplitter:
 
-    def __init__(self, patch_size=256, pad=True, binarize=False, 
-                 force_size=True, plot=True):
+    def __init__(self, patch_size=299, force_size=True, plot=True,
+                 verbose=True):
         self.patch_size = patch_size
-        self.pad = pad
-        self.binarize = binarize
         self.force_size = force_size
         self.plot = plot
-
-        assert not((not pad) and (not force_size)), "pad=False and force_size=False has not yet been implemented!"
+        self.verbose = verbose
 
     def _calc_dim(self):
         self.height, self.width = self.img.shape
@@ -23,11 +21,11 @@ class ImageSplitter:
 
         self.extend_width = self.height < self.width
 
-    def _pad_image(self, img, new_shape, extend_width, fill_value=0):
+    def _pad_image(self, img, new_shape, extend_width, fill_value):
         height, width = img.shape
         new_height, new_width = new_shape
-        img_pad = np.zeros(new_shape, dtype=np.uint8)
-        img_pad.fill(fill_value)
+
+        img_pad = np.full(new_shape, fill_value=fill_value, dtype=np.uint8)
 
         diff = new_width - width if extend_width else new_height - height
         num_padding = np.floor(diff / 2.0).astype(int)
@@ -47,6 +45,23 @@ class ImageSplitter:
             self.factor = int(self.min_dim / self.patch_size)
             self.ratio = (self.factor * self.patch_size) / self.min_dim
 
+    def _get_pad_color(self):
+        """
+        Find most frequent occurring for padding
+        """
+        unique_values, counts = np.unique(self.img, return_counts=True)
+        length = len(unique_values)
+
+        # Remove most extreme end colors
+        if length > 2:
+            unique_values = unique_values[1:length - 1]
+            counts = counts[1:length - 1]
+        else:
+            if self.verbose:
+                print("warning image had less than 2 colors.")
+    
+        return unique_values[np.argmax(counts)]
+
     def split(self, img_path):
         self.img_org = cv2.imread(img_path)
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)        
@@ -56,8 +71,7 @@ class ImageSplitter:
         self.img = cv2.resize(self.img, (0, 0), fx=self.ratio, fy=self.ratio, interpolation=cv2.INTER_AREA)
         self._calc_dim() # re-calculate dimensions after resize
 
-        if self.binarize:
-            self.img = (255 - cv2.threshold(self.img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1])
+        fill_value = self._get_pad_color()
 
         num_patches = int(np.ceil(self.max_dim / self.patch_size))
         new_dim = num_patches * self.patch_size
@@ -82,16 +96,15 @@ class ImageSplitter:
             img_split = self.img[patch_start_idx:patch_end_idx, :] if self.extend_width else self.img[:, patch_start_idx:patch_end_idx]
 
             start_idx = 0
-            end_idx = -num_padding + self.patch_size if self.pad else self.patch_size
+            end_idx = -num_padding + self.patch_size
 
             for j in range(num_patches):
                 
                 img = img_split[:, start_idx:end_idx] if self.extend_width else img_split[start_idx:end_idx, :]
-                if self.pad:
-                    img = self._pad_image(img, (self.patch_size, self.patch_size), extend_width=self.extend_width)
+                img = self._pad_image(img, (self.patch_size, self.patch_size), self.extend_width, fill_value)
                 patch_ls.append(img)
 
-                start_idx = end_idx if self.pad else end_idx - diff
+                start_idx = end_idx
                 end_idx += self.patch_size
 
                 if self.plot:
@@ -107,16 +120,17 @@ class ImageSplitter:
 
 
 if __name__ == "__main__":
-    image_splitter = ImageSplitter(plot=True, pad=True, force_size=True)
-    path = "../../../../datasets/ICDAR2017_CLaMM_Training/IRHT_P_001274.tif"
-    #path = "../../../../datasets/MPS/Download/1550/MPS1550_0024.ppm"
     import glob
     import random
+
     random.seed(43)
 
     imgs = glob.glob("../../../../datasets/CLaMM_Training_Clean/*.tif")
-    #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
     random.shuffle(imgs)
+
+    image_splitter = ImageSplitter(patch_size=600, plot=True, force_size=True)
+
     for path in imgs:
         image_splitter.split(path)
         plt.show()

@@ -12,23 +12,27 @@ from deep_dating.metrics import DatingMetrics
 
 class DatingCNN(nn.Module):
 
-    INCEPTION = "inception_resnet_v2"
     RESNET50 = "resnet50"
-    EFFICIENTNET = "efficientnet_b4"
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET: 320}
+    INCEPTION = "inception_resnet_v2"
+    EFFICIENTNET_B4 = "efficientnet_b4"
+    EFFICIENTNET_B7 = "tf_efficientnet_b7"
+
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 320, EFFICIENTNET_B7: 600}
+
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
-                      EFFICIENTNET: [("drop", 0.2, True)]}#, ("drop_path", 0.1, True)]}
+                      EFFICIENTNET_B4: [("drop", 0.2, True)]}#, ("drop_path", 0.1, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
-                 dropout=True):
+                 dropout=True, resize=True):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
         self.model_name = model_name
         self.model_type = ModelType.PATCH_CNN
         self.dropout = dropout
+        self.resize = resize
         self.verbose = verbose
 
         if num_classes is None or num_classes == 1:
@@ -59,11 +63,14 @@ class DatingCNN(nn.Module):
         self.learning_rate = learning_rate
         self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=self.learning_rate)
         
-        self.transforms = transforms.Compose([
+        transform_array = [
             transforms.Resize(self.input_size, antialias=True, interpolation=transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        ]
+        if not self.resize:
+            transform_array.pop(0)
+        self.transforms = transforms.Compose(transform_array)
 
         self.starting_weights = model_name if pretrained else None
         self.feature_extractor = False
