@@ -20,7 +20,7 @@ class DatingCNN(nn.Module):
 
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
-                      EFFICIENTNET_B4: [("drop", 0.2, True)]}#, ("drop_path", 0.1, True)]}
+                      EFFICIENTNET_B4: [("drop", 0.1, True)]}#, ("drop_path", 0.1, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
