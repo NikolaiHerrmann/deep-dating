@@ -14,10 +14,9 @@ class DatingCNN(nn.Module):
 
     RESNET50 = "resnet50"
     INCEPTION = "inception_resnet_v2"
-    EFFICIENTNET_B4 = "efficientnet_b4"
-    EFFICIENTNET_B7 = "tf_efficientnet_b7"
+    EFFICIENTNET_B4 = "tf_efficientnet_b4"
 
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 320, EFFICIENTNET_B7: 600}
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 380} #448}
 
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
@@ -25,7 +24,7 @@ class DatingCNN(nn.Module):
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
-                 dropout=True, resize=True):
+                 dropout=True, resize=False):
         super().__init__()
 
         assert model_name in self.IMAGE_NET_MODELS.keys(), "Unknown model!"
@@ -64,13 +63,13 @@ class DatingCNN(nn.Module):
         self.optimizer = torch.optim.Adam(self.base_model.parameters(), lr=self.learning_rate)
         
         transform_array = [
-            transforms.Resize(self.input_size, antialias=True, interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.Resize(self.input_size, antialias=True, max_size=None, interpolation=transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ]
         if not self.resize:
             transform_array.pop(0)
-        self.transforms = transforms.Compose(transform_array)
+        self.transform_input = transforms.Compose(transform_array)
 
         self.starting_weights = model_name if pretrained else None
         self.feature_extractor = False
@@ -130,12 +129,13 @@ class DatingCNN(nn.Module):
     
     def apply_transforms(self, img):
         #img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        return self.transforms(img)
+        return self.transform_input(img)
     
     def summary(self, batch_size=32):
         summary(self.base_model, input_size=(batch_size, 3, self.input_size, self.input_size), device=get_torch_device(self.verbose))
 
 
 if __name__ == "__main__":
-    model = DatingCNN(model_name="efficientnet_b4", num_classes=11)
+    model = DatingCNN(model_name=DatingCNN.EFFICIENTNET_B5, num_classes=15)
+    print(model.base_model)
     model.summary()

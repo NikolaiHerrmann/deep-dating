@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 
 class ImageSplitter:
 
-    def __init__(self, patch_size=299, force_size=True, plot=True,
-                 verbose=True):
+    def __init__(self, patch_size, force_size=True, plot=True, verbose=True):
         self.patch_size = patch_size
         self.force_size = force_size
         self.plot = plot
@@ -48,6 +47,7 @@ class ImageSplitter:
     def _get_pad_color(self):
         """
         Find most frequent occurring for padding
+        Idea from https://github.com/arthurflor23/handwritten-text-recognition/blob/master/src/data/preproc.py
         """
         unique_values, counts = np.unique(self.img, return_counts=True)
         length = len(unique_values)
@@ -60,7 +60,7 @@ class ImageSplitter:
             if self.verbose:
                 print("warning image had less than 2 colors.")
     
-        return unique_values[np.argmax(counts)]
+        return np.uint8(unique_values[np.argmax(counts)])
 
     def split(self, img_path):
         self.img_org = cv2.imread(img_path)
@@ -123,13 +123,14 @@ if __name__ == "__main__":
     import glob
     import random
 
-    random.seed(43)
+    random.seed(46)
 
     imgs = glob.glob("../../../../datasets/CLaMM_Training_Clean/*.tif")
-    imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    random.shuffle(imgs)
     random.shuffle(imgs)
 
-    image_splitter = ImageSplitter(patch_size=600, plot=True, force_size=True)
+    image_splitter = ImageSplitter(patch_size=380, plot=True, force_size=True)
 
     for path in imgs:
         image_splitter.split(path)

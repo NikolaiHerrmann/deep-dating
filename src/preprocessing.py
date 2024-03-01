@@ -51,6 +51,18 @@ def preprocess_dating_cnn_test(dataset):
 #             X, y = splitter.get_data(set_type)
 #             preprocessor.run(X, y, set_type, preprocessor_func)
 #             print("Image splitting done for", set_type)
+    
+def preprocess_pipeline2():
+    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
+
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2")
+    preprocessor_func = ImageSplitter(patch_size=380, force_size=True, plot=False).split
+
+    for set_type in [SetType.TRAIN, SetType.VAL]:
+        X, y = splitter.get_data(set_type)
+        preprocessor.run(X, y, set_type, preprocessor_func)
+        print("Image splitting done for", set_type)
 
 
 def preprocess_bin():
@@ -129,6 +141,7 @@ def run_aug_doc(n=60, test=True):
 
 if __name__ == "__main__":
     #run_aug_doc(test=True)
+    preprocess_pipeline2()
 
 
     # parser = argparse.ArgumentParser()
@@ -136,7 +149,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # if args.test:
-    run_binarization()
+    #run_binarization()
     #test_patch_extraction()
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))

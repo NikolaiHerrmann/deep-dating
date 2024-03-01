@@ -13,8 +13,9 @@ from deep_dating.util import get_date_as_str, get_torch_device, save_figure
 
 class DatingTrainer:
 
-    def __init__(self, num_epochs=200, patience=10, verbose=True):
-        self.save_path = "runs"
+    def __init__(self, msg, num_epochs=200, patience=10, verbose=True):
+        self.msg = msg
+        self.save_path = "runs_v2"
         self._init_save_dir()
         self.num_epochs = num_epochs
         self.patience = patience
@@ -31,12 +32,14 @@ class DatingTrainer:
     def _write_training_settings(self, model, loader):
         settings = {}
 
+        settings["training_purpose"] = self.msg
         settings["max_num_epochs"] = self.num_epochs
         settings["patience"] = self.patience
         settings["model_name"] = model.model_name
         settings["img_input_size"] = model.input_size
         settings["learning_rate"] = model.learning_rate
         settings["batch_size"] = loader.model_batch_size
+        settings["transform"] = str(model.transform_input)
         settings["dataset"] = loader.dataset_name.value
 
         if model.model_type == ModelType.PATCH_CNN:
@@ -66,8 +69,8 @@ class DatingTrainer:
 
         if model.model_type == ModelType.PATCH_CNN:
             labels = torch.flatten(labels) if model.classification else labels.unsqueeze(1)
-        # elif model.model_type == ModelType.AUTOENCODER:
-        #     return labels
+        elif model.model_type == ModelType.AUTOENCODER:
+            pass
             
         return labels
         
@@ -119,7 +122,7 @@ class DatingTrainer:
 
             for inputs, labels, paths in tqdm(train_loader, disable = not self.verbose):
 
-                labels = self._get_labels(model, labels, inputs) #labels.to(self.device).unsqueeze(1)
+                labels = self._get_labels(model, labels, inputs)
                 inputs = inputs.to(self.device)
 
                 model.optimizer.zero_grad()
@@ -132,7 +135,6 @@ class DatingTrainer:
                 
                 loss.backward()
                 model.optimizer.step()
-                #model.scheduler.step()
 
             self._save_example(epoch, "train", model, inputs.cpu().detach().numpy(), outputs_detach, labels_detach)
             mean_train_loss = self.metric_writer.mark_epoch(epoch)
@@ -161,11 +163,7 @@ class DatingTrainer:
             if save_model:
                 path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
                 model.save(path)
-                #self.best_model = (path, model.get_state())
-                #print("not saving")
             if stop:
                 if self.verbose:
                     print("Stopping early!")
-                #model.save_state(self.best_model[0], self.best_model[1])
-                #print("saved model")
                 break

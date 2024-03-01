@@ -1,0 +1,1 @@
+set_type,epoch,mean_loss,std_loss,min_loss,max_loss,mae,mse,cs_0,cs_25,f1,accuracy,recall,precision
