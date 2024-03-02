@@ -53,8 +53,8 @@ def preprocess_dating_cnn_test(dataset):
 #             print("Image splitting done for", set_type)
     
 def preprocess_pipeline2():
-    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
+    dataset = MPS() #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299")
     preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split

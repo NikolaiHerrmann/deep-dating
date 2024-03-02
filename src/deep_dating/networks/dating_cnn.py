@@ -51,9 +51,11 @@ class DatingCNN(nn.Module):
 
         self.base_model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
         
+        self.dropout_vals = None
         if self.dropout:
             num_dropouts = 0
-            for block_name, p_value, is_2d in self.MODEL_DROP_OUT[self.model_name]:
+            self.dropout_vals = self.MODEL_DROP_OUT[self.model_name]
+            for block_name, p_value, is_2d in self.dropout_vals:
                 num_dropouts += self.add_dropout(self.base_model, drop_block_name=block_name, p_value=p_value, drop_2d=is_2d)
             if self.verbose:
                 print(f"Added {num_dropouts} dropout layers")

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from deep_dating.networks import EarlyStopper, ModelType
 from deep_dating.metrics import MetricWriter
-from deep_dating.util import get_date_as_str, get_torch_device, save_figure
+from deep_dating.util import get_date_as_str, get_torch_device, save_figure, SEED
 
 
 class DatingTrainer:
@@ -41,10 +41,12 @@ class DatingTrainer:
         settings["batch_size"] = loader.model_batch_size
         settings["transform"] = str(model.transform_input)
         settings["dataset"] = loader.dataset_name.value
+        settings["seed"] = SEED
 
         if model.model_type == ModelType.PATCH_CNN:
             settings["starting_weights"] = model.starting_weights
             settings["classification"] = model.classification
+            settings["dropout"] = model.dropout_vals
             if model.classification:
                 settings["classes"] = loader.torch_dataset.get_class_dict()
 

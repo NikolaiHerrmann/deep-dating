@@ -6,10 +6,10 @@ from deep_dating.util import DATASETS_PATH
 
 
 def train_dating_cnn():
-    dataset = DatasetName.CLAMM
+    dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
-    trainer = DatingTrainer("Inception for P2 with lower dropout", num_epochs=100, patience=20)
+    trainer = DatingTrainer("Inception for P2 for MPS first time", num_epochs=100, patience=20)
     n_splits = 1
     batch_size = 32
 
