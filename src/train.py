@@ -8,15 +8,15 @@ from deep_dating.util import DATASETS_PATH
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2")
-    trainer = DatingTrainer("First EfficientNet for P2 with lower dropout", num_epochs=100, patience=20)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
+    trainer = DatingTrainer("Inception for P2", num_epochs=100, patience=20)
     n_splits = 1
-    batch_size = 16
+    batch_size = 32
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name=DatingCNN.EFFICIENTNET_B4, num_classes=15, dropout=True)
+        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=15, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)

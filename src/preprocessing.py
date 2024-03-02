@@ -56,8 +56,8 @@ def preprocess_pipeline2():
     dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2")
-    preprocessor_func = ImageSplitter(patch_size=380, force_size=True, plot=False).split
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299")
+    preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
