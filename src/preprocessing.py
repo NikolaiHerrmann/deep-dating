@@ -50,9 +50,9 @@ def preprocess_pipeline2():
 
 
 def preprocess_bin():
-    dataset = BinDataset(augment=False)
+    dataset = BinDataset(augment=True)
 
-    for X_train, X_val, ext, padding_color in [(dataset.X_train, dataset.X_test, "_Set_No_Aug", 0), (dataset.y_train, dataset.y_test, "_Set_GT_No_Aug", 255)]:
+    for X_train, X_val, ext, padding_color in [(dataset.X_train, dataset.X_test, "_Set_Aug", 0), (dataset.y_train, dataset.y_test, "_Set_GT_Aug", 255)]:
 
         preprocessor = PreprocessRunner(dataset.name, ext=ext, include_old_name=False)
         preprocessing_func = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False, padding_color=padding_color).extract_patches
@@ -105,7 +105,7 @@ def test_patch_extraction():
         patch_extractor.save_plot(show=True)
 
 
-def run_aug_doc(n=60, test=True):
+def run_aug_doc(n=75, test=False):
     
     if test:
         aug_doc = AugDoc(plot=True)
@@ -124,7 +124,7 @@ def run_aug_doc(n=60, test=True):
 
 
 if __name__ == "__main__":
-    #run_aug_doc(test=True)
+    #run_aug_doc(test=False)
     #preprocess_pipeline2()
     preprocess_bin()
 
