@@ -16,7 +16,6 @@ class CrossVal:
     def _read_data(self):
         self.X_train, self.y_train = self.preprocess_runner.read_preprocessing_header(SetType.TRAIN)
         self.X_val, self.y_val = self.preprocess_runner.read_preprocessing_header(SetType.VAL)
-        print("val size:", self.y_val.shape, self.y_train.shape)
 
         self.X = np.concatenate([self.X_train, self.X_val])
         self.y = np.concatenate([self.y_train, self.y_val])
@@ -30,7 +29,6 @@ class CrossVal:
             self.skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=SEED)
 
             for train_idxs, val_idx in self.skf.split(self.X, self.y):
-                print("val k fold size:", self.y[val_idx].shape, self.y[train_idxs].shape)
                 yield self.X[train_idxs], self.y[train_idxs], self.X[val_idx], self.y[val_idx]
 
         elif n_splits == 1:

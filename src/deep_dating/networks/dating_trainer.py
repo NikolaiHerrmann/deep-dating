@@ -13,21 +13,25 @@ from deep_dating.util import get_date_as_str, get_torch_device, save_figure, SEE
 
 class DatingTrainer:
 
-    def __init__(self, msg, num_epochs=200, patience=10, verbose=True):
+    def __init__(self, msg, num_epochs=200, patience=10, exp_name=None, verbose=True):
         self.msg = msg
         self.save_path = "runs_v2"
+        self.exp_name = exp_name
         self._init_save_dir()
         self.num_epochs = num_epochs
         self.patience = patience
         self.verbose = verbose
         self.device = get_torch_device(verbose)
-        self.early_stopper = EarlyStopper(patience)
         self.best_model_path = None
 
     def _init_save_dir(self):
         os.makedirs(self.save_path, exist_ok=True)
-        self.exp_path = os.path.join(self.save_path, get_date_as_str())
-        os.mkdir(self.exp_path)
+
+        if self.exp_name is None:
+            self.exp_name = get_date_as_str()
+        
+        self.exp_path = os.path.join(self.save_path, self.exp_name)
+        os.makedirs(self.exp_path, exist_ok=True)
 
     def _write_training_settings(self, model, loader):
         settings = {}
@@ -108,6 +112,8 @@ class DatingTrainer:
 
     def train(self, model, train_loader, val_loader, split):
         self.metric_writer = MetricWriter(self.exp_path, model.metrics, name_extra=f"split_{split}")
+        self.early_stopper = EarlyStopper(self.patience) # Reset its values every run
+        self.best_model_path = None
 
         if split == 0:
             self._write_training_settings(model, train_loader)

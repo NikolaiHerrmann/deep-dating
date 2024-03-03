@@ -22,11 +22,17 @@ def train_dating_cnn():
     dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
-    trainer = DatingTrainer("Inception for P2 for MPS with cross-val", num_epochs=50, patience=6)
+    trainer = DatingTrainer("Inception for P2 for MPS with cross-val", num_epochs=50, patience=6, exp_name="Mar3-10-15-23")
     n_splits = 5
     batch_size = 32
+    avoid_splits = [0]
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
+        
+        if i in avoid_splits:
+            print(f"Avoiding split: {i + 1}")
+            continue
+
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=11, dropout=True)
