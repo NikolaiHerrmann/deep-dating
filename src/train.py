@@ -21,8 +21,8 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 def train_dating_cnn():
     dataset = DatasetName.MPS
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
-    trainer = DatingTrainer("Inception for P2 for MPS with cross-val", num_epochs=50, patience=6, exp_name="Mar3-10-15-23")
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_299")
+    trainer = DatingTrainer("Inception for P1 for MPS with cross-val", num_epochs=50, patience=6)
     n_splits = 5
     batch_size = 32
 
@@ -72,6 +72,6 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    #train_dating_cnn()
+    train_dating_cnn()
     #train_autoencoder()
-    train_classifier()
+    #train_classifier()

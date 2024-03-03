@@ -14,9 +14,9 @@ from tqdm import tqdm
 def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, None, 400, test_size=0, read_aug=True, binary=True) #150 # 50
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Bin")
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
+    splitter = DatasetSplitter(dataset, None, None) #150 # 50
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_299", resize=299)
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
@@ -126,7 +126,7 @@ def run_aug_doc(n=75, test=False):
 if __name__ == "__main__":
     #run_aug_doc(test=False)
     #preprocess_pipeline2()
-    preprocess_bin()
+    #preprocess_bin()
 
 
     # parser = argparse.ArgumentParser()
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
-    #preprocess_dating_cnn(MPS())
+    preprocess_dating_cnn(MPS())
     
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")))
 

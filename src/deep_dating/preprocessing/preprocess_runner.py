@@ -9,10 +9,11 @@ from multiprocessing import Pool
 
 class PreprocessRunner:
 
-    def __init__(self, dataset_name, ext="_Set", include_old_name=True):
+    def __init__(self, dataset_name, ext="_Set", include_old_name=True, resize=None):
         self.save_path = os.path.join(DATASETS_PATH, str(dataset_name) + ext)
         self.csv_header_path = os.path.join(self.save_path, "split.csv")
         self.include_old_name = include_old_name
+        self.resize = resize
 
     def _preprocess_img(self, arg):
         img_path, img_date, img_id = arg
@@ -23,6 +24,9 @@ class PreprocessRunner:
             new_image_name = old_img_name if self.include_old_name else ""
             new_image_name += f"__{int(img_id)}_{int(img_date)}_p{i}.png"
             file_name = os.path.join(self.save_path, new_image_name)
+
+            if self.resize is not None:
+                img = cv2.resize(img, (self.resize, self.resize), interpolation=cv2.INTER_CUBIC)
 
             cv2.imwrite(file_name, img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
 

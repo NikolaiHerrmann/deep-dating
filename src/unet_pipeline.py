@@ -5,12 +5,13 @@ from deep_dating.prediction import AutoencoderPredictor
 
 
 if __name__ == "__main__":
-    dataset = CLaMM_Test_Task4()
+    dataset = ScribbleLens()
 
     X = dataset.X
-    random.shuffle(X)
+    #random.shuffle(X)
 
-    predictor = AutoencoderPredictor(model_path="runs/unet1/model_epoch_273_split_0.pt")
+    predictor = AutoencoderPredictor(model_path="runs/unet1/model_epoch_328_split_0.pt")
 
     for x in X:
+        x = "/home/nikolai/Downloads/datasets/ICDAR2017_CLaMM_task2_task4/B591226101_MS0164_0062.jpg"
         predictor.run(x, plot=True)
