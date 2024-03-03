@@ -27,7 +27,7 @@ def train_dating_cnn():
     batch_size = 32
 
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [0] 
+    avoid_splits = [] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
@@ -68,9 +68,10 @@ def train_autoencoder():
 def train_classifier():
     classifier = DatingClassifier()
 
-    classifier.cross_val("runs_v2")
+    classifier.cross_val("runs_v2/MPS_P2_Crossval")
+
 
 if __name__ == "__main__":
     #train_dating_cnn()
-    train_autoencoder()
-    #train_classifier()
+    #train_autoencoder()
+    train_classifier()
