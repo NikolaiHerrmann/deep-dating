@@ -1,7 +1,7 @@
 
 import os
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
-from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder
+from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder, DatingClassifier
 from deep_dating.prediction import DatingPredictor
 
 
@@ -65,7 +65,12 @@ def train_autoencoder():
     trainer.train(model, train_loader, val_loader, 0)
 
 
+def train_classifier():
+    classifier = DatingClassifier()
+
+    classifier.cross_val("runs_v2")
 
 if __name__ == "__main__":
     #train_dating_cnn()
-    train_autoencoder()
+    #train_autoencoder()
+    train_classifier()
