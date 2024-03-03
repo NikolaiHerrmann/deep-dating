@@ -1,10 +1,8 @@
 
 import os
-import numpy as np
 import cv2
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from deep_dating.util import DATASETS_PATH
 from multiprocessing import Pool
 
@@ -26,8 +24,8 @@ class PreprocessRunner:
             new_image_name += f"__{int(img_id)}_{int(img_date)}_p{i}.png"
             file_name = os.path.join(self.save_path, new_image_name)
 
-            #img = cv2.resize(img, (299, 299), interpolation=cv2.INTER_LINEAR)
             cv2.imwrite(file_name, img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
             names.append((file_name, img_date))
         return names
     

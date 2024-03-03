@@ -4,15 +4,13 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from deep_dating.util import get_torch_device, get_date_as_str
-import torch.multiprocessing
-
-torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 class DatingPredictor:
 
     def __init__(self, verbose=True):
         self.verbose = verbose
+        torch.multiprocessing.set_sharing_strategy("file_system")
 
     def load(self, path):
         with open(path, "rb") as f:

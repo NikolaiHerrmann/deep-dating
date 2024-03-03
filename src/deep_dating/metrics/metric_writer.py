@@ -7,8 +7,8 @@ from deep_dating.util import get_date_as_str
 
 class MetricWriter:
 
-    def __init__(self, path, metrics):
-        file_name = "epoch_log_" + get_date_as_str() + ".csv"
+    def __init__(self, path, metrics, name_extra=""):
+        file_name = "epoch_log_" + name_extra + "_" + get_date_as_str() + ".csv"
         self.csv_path = os.path.join(path, file_name)
 
         self.metrics = metrics

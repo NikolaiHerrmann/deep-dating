@@ -22,7 +22,7 @@ class DatingTrainer:
         self.verbose = verbose
         self.device = get_torch_device(verbose)
         self.early_stopper = EarlyStopper(patience)
-        self.best_model = None
+        self.best_model_path = None
 
     def _init_save_dir(self):
         os.makedirs(self.save_path, exist_ok=True)
@@ -107,7 +107,7 @@ class DatingTrainer:
         return labels_detach, outputs_detach
 
     def train(self, model, train_loader, val_loader, split):
-        self.metric_writer = MetricWriter(self.exp_path, model.metrics)
+        self.metric_writer = MetricWriter(self.exp_path, model.metrics, name_extra=f"split_{split}")
 
         if split == 0:
             self._write_training_settings(model, train_loader)
@@ -163,8 +163,8 @@ class DatingTrainer:
 
             stop, save_model = self.early_stopper.stop(mean_val_loss)
             if save_model:
-                path = os.path.join(self.exp_path, f"model_epoch_{epoch}.pt")
-                model.save(path)
+                self.best_model_path = os.path.join(self.exp_path, f"model_epoch_{epoch}_split_{split}.pt")
+                model.save(self.best_model_path)
             if stop:
                 if self.verbose:
                     print("Stopping early!")

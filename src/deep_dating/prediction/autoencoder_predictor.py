@@ -1,6 +1,7 @@
 
 import os
 import cv2
+import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from deep_dating.networks import Autoencoder
@@ -42,11 +43,12 @@ class AutoencoderPredictor:
         data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
         outputs = []
 
-        for input in data_loader:
-            input = input.to(self.device)
-            output = self.model(input)
-            output = output.cpu().detach().numpy()
-            outputs.append(output)
+        with torch.no_grad():
+            for input in data_loader:
+                input = input.to(self.device)
+                output = self.model(input)
+                output = output.cpu().detach().numpy()
+                outputs.append(output)
 
         outputs = np.concatenate(outputs)
           

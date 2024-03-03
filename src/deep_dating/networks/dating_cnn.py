@@ -16,11 +16,11 @@ class DatingCNN(nn.Module):
     INCEPTION = "inception_resnet_v2"
     EFFICIENTNET_B4 = "tf_efficientnet_b4"
 
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 380} #448}
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 380}
 
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.1, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
-                      EFFICIENTNET_B4: [("drop", 0.1, True)]}#, ("drop_path", 0.1, True)]}
+                      EFFICIENTNET_B4: [("drop", 0.1, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
@@ -118,12 +118,16 @@ class DatingCNN(nn.Module):
             self.train()
         else:
             if use_as_feat_extractor:
-                self._discard_output_layer()
-                self.feature_extractor = True
+                self.use_as_feature_extractor()
             self.eval()
 
         if self.verbose:
             print("Model loading completed!")
+
+    def use_as_feature_extractor(self):
+        self._discard_output_layer()
+        self.feature_extractor = True
+        self.eval()
 
     def transform_img(self, img_path):
         img = Image.open(img_path).convert("RGB")
