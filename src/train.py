@@ -25,7 +25,9 @@ def train_dating_cnn():
     trainer = DatingTrainer("Inception for P2 for MPS with cross-val", num_epochs=50, patience=6, exp_name="Mar3-10-15-23")
     n_splits = 5
     batch_size = 32
-    avoid_splits = [0]
+
+    # leave empty, just in case program crashes and need to re-run
+    avoid_splits = [0] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
@@ -45,31 +47,25 @@ def train_dating_cnn():
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
 
 
-def train_autoencoder2():
-
+def train_autoencoder():
     dataset = DatasetName.DIBCO
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set")
-    cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT")
-    trainer = DatingTrainer(num_epochs=200, patience=50)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_No_Aug")
+    cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT_No_Aug")
+    trainer = DatingTrainer("train binet without aug", num_epochs=400, patience=50)
 
-    n_splits = 1
+    (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=1))
+    (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=1))      
 
-    for i in range(n_splits):
-        print(f" -- Running split: {i+1}/{n_splits} -- ")
+    model = Autoencoder()
 
-        (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=n_splits))
-        (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=n_splits))      
+    train_loader = DatingDataLoader(dataset, X_train, X_train_gt, model)
+    val_loader = DatingDataLoader(dataset, X_val, X_val_gt, model)
 
-        model = Autoencoder()
-        model.load("runs/Feb25-16-43-57/model_epoch_195.pt", continue_training=True)
-        train_loader = DatingDataLoader(dataset, X_train, X_train_gt, model)
-        val_loader = DatingDataLoader(dataset, X_val, X_val_gt, model)
-
-        trainer.train(model, train_loader, val_loader, i)
+    trainer.train(model, train_loader, val_loader, 0)
 
 
 
 if __name__ == "__main__":
-    train_dating_cnn()
-    #train_autoencoder2()
+    #train_dating_cnn()
+    train_autoencoder()

@@ -35,23 +35,7 @@ def preprocess_dating_cnn_test(dataset):
 
     preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
-
-# def preprocess_autoencoder():
-#     dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-#     splitter = DatasetSplitter(dataset, 80, 400, test_size=0)
-
-#     for i in range(1):
-#         binarize = i == 1
-#         name_ext = "_Bin" if binarize else ""
-
-#         preprocessor = PreprocessRunner(dataset.name, ext=("_Set_Auto" + name_ext))
-#         preprocessor_func = ImageSplitter(plot=False, binarize=binarize).split
-
-#         for set_type in [SetType.TRAIN, SetType.VAL]:
-#             X, y = splitter.get_data(set_type)
-#             preprocessor.run(X, y, set_type, preprocessor_func)
-#             print("Image splitting done for", set_type)
-    
+   
 def preprocess_pipeline2():
     dataset = MPS() #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
@@ -66,9 +50,9 @@ def preprocess_pipeline2():
 
 
 def preprocess_bin():
-    dataset = BinDataset()
+    dataset = BinDataset(augment=False)
 
-    for X_train, X_val, ext, padding_color in [(dataset.X_train, dataset.X_test, "_Set", 0), (dataset.y_train, dataset.y_test, "_Set_GT", 255)]:
+    for X_train, X_val, ext, padding_color in [(dataset.X_train, dataset.X_test, "_Set_No_Aug", 0), (dataset.y_train, dataset.y_test, "_Set_GT_No_Aug", 255)]:
 
         preprocessor = PreprocessRunner(dataset.name, ext=ext, include_old_name=False)
         preprocessing_func = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False, padding_color=padding_color).extract_patches
@@ -141,7 +125,8 @@ def run_aug_doc(n=60, test=True):
 
 if __name__ == "__main__":
     #run_aug_doc(test=True)
-    preprocess_pipeline2()
+    #preprocess_pipeline2()
+    preprocess_bin()
 
 
     # parser = argparse.ArgumentParser()
