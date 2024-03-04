@@ -57,7 +57,7 @@ class PreprocessRunner:
         file_names, dates = processed_imgs[:, 0], processed_imgs[:, 1]
 
         df = pd.DataFrame({"name": file_names, "date": dates, "set": [set_type.value] * len(file_names)})
-        #df.to_csv(self.csv_header_path, mode="a", index=False, header=False)
+        df.to_csv(self.csv_header_path, mode="a", index=False, header=False)
 
     def read_preprocessing_header(self, set_type):
         df = pd.read_csv(self.csv_header_path, header=None)
