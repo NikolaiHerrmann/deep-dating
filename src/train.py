@@ -26,6 +26,8 @@ def train_dating_cnn():
     n_splits = 5
     batch_size = 32
 
+    trainer.best_model_path = "runs_v2/Mar3-21-29-57/model_epoch_9_split_0.pt"
+
     # leave empty, just in case program crashes and need to re-run
     avoid_splits = [] 
 
@@ -45,9 +47,10 @@ def train_dating_cnn():
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
 
-        trainer.train(model, train_loader, val_loader, i)
+        #trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
+        return
 
 
 def train_autoencoder():
