@@ -4,7 +4,7 @@ import glob
 import pickle
 import numpy as np
 import pandas as pd
-from sklearn.svm import SVC
+from sklearn.svm import SVC, SVR
 from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
@@ -20,13 +20,18 @@ class DatingClassifier:
         self.network_predictor = DatingPredictor(verbose=self.verbose)
         self.metrics = DatingMetrics(alphas=[0, 25, 50])
 
-    def _merge_patches(self, labels, feats, img_names):
+    def _merge_patches(self, labels, feats, img_names, test_dict=None):
         preds = {}
 
         labels = labels.flatten()
 
         for i, img_name in enumerate(img_names):
             img_name = PreprocessRunner.get_base_img_name(img_name)
+
+            if test_dict:
+                if img_name in test_dict:
+                    print("leaking data!")
+                    continue
 
             if not img_name in preds:
                 preds[img_name] = {"label": labels[i], "feat": [feats[i]]}
@@ -78,16 +83,19 @@ class DatingClassifier:
 
     def train(self, feats_path_train, feats_path_val, save_path=None):
         labels_train_patch, features_train_patch, img_names_train = self.network_predictor.load(feats_path_train)
-        labels_train_img, features_train_img, _ = self._merge_patches(labels_train_patch, features_train_patch, img_names_train)
+        labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train)
 
         labels_val_patch, features_val_patch, img_names_val = self.network_predictor.load(feats_path_val)
-        labels_val_img, features_val_img, _ = self._merge_patches(labels_val_patch, features_val_patch, img_names_val)
+        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, train_dict)
 
         scaler = MinMaxScaler(feature_range=(-1, 1))
         features_train_img_scaled = scaler.fit_transform(features_train_img)
         features_val_img_scaled = scaler.transform(features_val_img)
 
         model = SVC(kernel="rbf", C=1, gamma="scale", random_state=SEED)
+        
+        print(features_train_img_scaled.shape)
+        print(features_val_img_scaled.shape)
 
         model.fit(features_train_img_scaled, labels_train_img)
         labels_val_predict_img = model.predict(features_val_img_scaled)

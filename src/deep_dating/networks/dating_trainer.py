@@ -117,11 +117,11 @@ class DatingTrainer:
         self.best_model_path = None
         self.start_epoch = 0
 
-        if split == 0:
-            self.start_epoch = 10
-            self.early_stopper.min_val_loss = 0.13794056724345988
-            self.metric_writer.csv_path = "runs_v2/Mar3-21-29-57/epoch_log_split_0_Mar3-21-29-59.csv"
-            print("Warning, hard coding values as program crashed!")
+        # if split == 0:
+        #     self.start_epoch = 10
+        #     self.early_stopper.min_val_loss = 0.13794056724345988
+        #     self.metric_writer.csv_path = "runs_v2/Mar3-21-29-57/epoch_log_split_0_Mar3-21-29-59.csv"
+        #     print("Warning, hard coding values as program crashed!")
 
         if split == 0:
             self._write_training_settings(model, train_loader)

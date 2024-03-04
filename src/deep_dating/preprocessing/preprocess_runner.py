@@ -20,6 +20,10 @@ class PreprocessRunner:
         imgs = self.process_func(img_path)
         old_img_name = os.path.basename(img_path).rsplit(".", 1)[0]
         names = []
+
+        if len(imgs) == 0:
+            print(f"warning no patches extracted for {img_path}!")
+
         for i, img in enumerate(imgs):
             new_image_name = old_img_name if self.include_old_name else ""
             new_image_name += f"__{int(img_id)}_{int(img_date)}_p{i}.png"
@@ -36,7 +40,7 @@ class PreprocessRunner:
     @staticmethod
     def get_base_img_name(path):
         base_name = os.path.basename(path)
-        return base_name.split("_p")[0]
+        return base_name.rsplit("_p", 1)[0]
         
     def run(self, X, y, set_type, preprocessing_func):
         self.process_func = preprocessing_func
@@ -53,7 +57,7 @@ class PreprocessRunner:
         file_names, dates = processed_imgs[:, 0], processed_imgs[:, 1]
 
         df = pd.DataFrame({"name": file_names, "date": dates, "set": [set_type.value] * len(file_names)})
-        df.to_csv(self.csv_header_path, mode="a", index=False, header=False)
+        #df.to_csv(self.csv_header_path, mode="a", index=False, header=False)
 
     def read_preprocessing_header(self, set_type):
         df = pd.read_csv(self.csv_header_path, header=None)

@@ -13,5 +13,5 @@ if __name__ == "__main__":
     predictor = AutoencoderPredictor(model_path="runs/unet1/model_epoch_328_split_0.pt")
 
     for x in X:
-        x = "/home/nikolai/Downloads/datasets/ICDAR2017_CLaMM_task2_task4/B591226101_MS0164_0062.jpg"
+        x = "../../datasets/MPS/Download/1450/MPS1450_0160.ppm"
         predictor.run(x, plot=True)

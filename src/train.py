@@ -21,12 +21,10 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 def train_dating_cnn():
     dataset = DatasetName.MPS
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_299")
-    trainer = DatingTrainer("Inception for P1 for MPS with cross-val without bin", num_epochs=50, patience=3, exp_name="Mar3-21-29-57")
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
+    trainer = DatingTrainer("Inception for P2 for MPS with correct cross-val now", num_epochs=50, patience=6)
     n_splits = 5
     batch_size = 32
-
-    trainer.best_model_path = "runs_v2/Mar3-21-29-57/model_epoch_9_split_0.pt"
 
     # leave empty, just in case program crashes and need to re-run
     avoid_splits = [] 
@@ -40,17 +38,13 @@ def train_dating_cnn():
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=11, dropout=True)
-        if i == 0:
-            model.load("runs_v2/Mar3-21-29-57/model_epoch_9_split_0.pt", continue_training=True)
-            print("picking up where left off")
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
 
-        #trainer.train(model, train_loader, val_loader, i)
+        trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
-        return
 
 
 def train_autoencoder():
@@ -74,7 +68,7 @@ def train_autoencoder():
 def train_classifier():
     classifier = DatingClassifier()
 
-    classifier.cross_val("runs_v2/MPS_P2_Crossval")
+    classifier.cross_val("runs_v2/MPS_P2_Crossval", n_splits=5)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,10 @@ def preprocess_dating_cnn(dataset):
     print("Running patch extraction for ", dataset.name, "...")
 
     splitter = DatasetSplitter(dataset, None, None) #150 # 50
+    # print(splitter.X_train.shape)
+    # print(splitter.X_val.shape)
+    # return
+
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_299", resize=299)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
 
@@ -125,7 +129,8 @@ def run_aug_doc(n=75, test=False):
 
 if __name__ == "__main__":
     #run_aug_doc(test=False)
-    #preprocess_pipeline2()
+    preprocess_pipeline2()
+    #preprocess_dating_cnn(MPS())
     #preprocess_bin()
 
 
@@ -148,7 +153,7 @@ if __name__ == "__main__":
     #test()
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")))
     #preprocess_autoencoder()
-    preprocess_dating_cnn(MPS())
+    #preprocess_dating_cnn(MPS())
     
     #preprocess_dating_cnn(CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")))
 
