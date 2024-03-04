@@ -3,10 +3,15 @@ import numpy as np
 
 
 class EarlyStopper:
+    """
+    Early stopping class since PyTorch doesn't have one
+    Class adapted from https://stackoverflow.com/a/73704579
+    """
 
-    def __init__(self, patience):
+    def __init__(self, patience, min_val_loss=np.inf, patience_count=0):
         self.patience = patience
-        self.min_val_loss = np.inf
+        self.min_val_loss = min_val_loss
+        self.patience_count = patience_count
         
     def stop(self, current_val_loss):
         stop = False

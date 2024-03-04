@@ -23,6 +23,7 @@ class DatingTrainer:
         self.verbose = verbose
         self.device = get_torch_device(verbose)
         self.best_model_path = None
+        self.start_epoch = 0
 
     def _init_save_dir(self):
         os.makedirs(self.save_path, exist_ok=True)
@@ -114,6 +115,13 @@ class DatingTrainer:
         self.metric_writer = MetricWriter(self.exp_path, model.metrics, name_extra=f"split_{split}")
         self.early_stopper = EarlyStopper(self.patience) # Reset its values every run
         self.best_model_path = None
+        self.start_epoch = 0
+
+        if split == 0:
+            self.start_epoch = 10
+            self.early_stopper.min_val_loss = 0.13794056724345988
+            self.metric_writer.csv_path = "runs_v2/Mar3-21-29-57/epoch_log_split_0_Mar3-21-29-59.csv"
+            print("Warning, hard coding values as program crashed!")
 
         if split == 0:
             self._write_training_settings(model, train_loader)
@@ -121,7 +129,7 @@ class DatingTrainer:
         
         model.to(self.device)
 
-        for epoch in range(self.num_epochs):
+        for epoch in range(self.start_epoch, self.num_epochs):
             if self.verbose:
                 print(f"Epoch {epoch + 1}/{self.num_epochs}")
 

@@ -22,7 +22,7 @@ def train_dating_cnn():
     dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_299")
-    trainer = DatingTrainer("Inception for P1 for MPS with cross-val", num_epochs=50, patience=6)
+    trainer = DatingTrainer("Inception for P1 for MPS with cross-val without bin", num_epochs=50, patience=3)
     n_splits = 5
     batch_size = 32
 
@@ -38,6 +38,9 @@ def train_dating_cnn():
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=11, dropout=True)
+        if i == 0:
+            model.load("runs_v2/Mar3-21-29-57/model_epoch_9_split_0.pt", continue_training=True)
+            print("picking up where left off")
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
