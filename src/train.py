@@ -22,7 +22,7 @@ def train_dating_cnn():
     dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_299")
-    trainer = DatingTrainer("Inception for P1 for MPS with cross-val without bin", num_epochs=50, patience=3)
+    trainer = DatingTrainer("Inception for P1 for MPS with cross-val without bin", num_epochs=50, patience=3, exp_name="Mar3-21-29-57")
     n_splits = 5
     batch_size = 32
 
