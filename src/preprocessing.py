@@ -11,16 +11,15 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-def preprocess_dating_cnn(dataset):
+def preprocess_dating_cnn():
+    dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
+
     print("Running patch extraction for ", dataset.name, "...")
 
-    splitter = DatasetSplitter(dataset, None, None) #150 # 50
-    # print(splitter.X_train.shape)
-    # print(splitter.X_val.shape)
-    # return
+    splitter = DatasetSplitter(dataset, None, None)
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_299", resize=299)
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299", resize=299)
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
     for set_type in [SetType.TRAIN, SetType.VAL]:
         X, y = splitter.get_data(set_type)
@@ -87,11 +86,12 @@ def run_binarization():
 
 def test_patch_extraction():
     #X = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")).X
+    dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
     import random
     random.seed(43)
-    X = glob.glob("../../datasets/CLaMM_Training_Clean/*.tif")
-    #imgs = glob.glob("../../../../datasets/MPS/Download/1550/*.ppm")
+    X = dataset.X
     random.shuffle(X)
+
     patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, show_lines_in_plot=False)
 
     for x in X:
@@ -122,8 +122,9 @@ if __name__ == "__main__":
     #preprocess_pipeline2()
     #preprocess_dating_cnn(MPS())
     #preprocess_bin()
-
-    run_binarization()
+    
+    test_patch_extraction()
+    #run_binarization()
 
 
     # parser = argparse.ArgumentParser()

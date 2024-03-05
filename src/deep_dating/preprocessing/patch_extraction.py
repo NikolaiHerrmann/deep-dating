@@ -8,8 +8,6 @@ import matplotlib.patches as plt_patches
 from scipy.signal import find_peaks
 from enum import Enum
 
-from PIL import ImageEnhance, Image
-import skimage
 
 class PatchMethod(Enum):
     RANDOM = 0
@@ -81,28 +79,9 @@ class PatchExtractor:
     def _read_img(self, img_obj):
         self.img_org = cv2.imread(img_obj)
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
-        # from torchvision.transforms.functional import adjust_contrast
+        
         self.mean = np.mean(self.img) / 255
         self.std = np.std(self.img) / 255
-        print(np.mean(self.img) / 255)
-        print(np.std(self.img) / 255)
-
-        # hist = cv2.calcHist([self.img],[0],None,[256],[0,256])
-        # hist_norm = hist.ravel()/hist.sum()
-        # plt.plot(hist_norm)
-        # plt.show()
-        # print(skimage.exposure.is_low_contrast(self.img, fraction_threshold=0.35))
-
-        # img = Image.open(img_obj).convert("L")
-        # enhancer = ImageEnhance.Contrast(img)
-        # img = enhancer.enhance(5)
-        # self.img = np.array(img)
-        #self.img = adjust_contrast(img, 2)
-
-        # res = cv2.threshold(self.img,0,255,cv2.THRESH_OTSU)[1]
-        # plt.imshow(res, cmap="gray")
-        # plt.show()
-        # exit()
 
         if self.is_binary:
             unique_vals = np.unique(self.img)

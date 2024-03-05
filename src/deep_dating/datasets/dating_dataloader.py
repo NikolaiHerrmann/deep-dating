@@ -22,7 +22,7 @@ class DatingDataLoader(DataLoader):
         
         for i in range(self.model_batch_size):
             a = axs[i % num_cells, i // num_cells]
-            a.imshow(images[i, :], cmap="gray")
+            a.imshow(images[i, 0, :], cmap="gray")
             a.set_title(f"Date: {labels[i]}")
 
         fig.tight_layout()

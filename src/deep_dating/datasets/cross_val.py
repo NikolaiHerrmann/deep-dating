@@ -9,7 +9,8 @@ from deep_dating.util import SEED
 
 class CrossVal:
 
-    def __init__(self, dataset_name, preprocess_ext="_Set"):
+    def __init__(self, dataset_name, preprocess_ext="_Set", verbose=True):
+        self.verbose = verbose
         self.preprocess_runner = PreprocessRunner(dataset_name, preprocess_ext)
         self._read_data()
 
@@ -28,6 +29,9 @@ class CrossVal:
                 self.img_level_patches[img_name].append(patch_name)
 
         assert list(self.img_level_labels.keys()) == list(self.img_level_patches.keys())
+
+        if self.verbose:
+            print(f"Found {len(self.img_level_patches.keys())} images from all patches.")
 
     def _read_data(self):
         self.X_train, self.y_train = self.preprocess_runner.read_preprocessing_header(SetType.TRAIN)

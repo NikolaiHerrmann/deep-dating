@@ -83,11 +83,18 @@ class DatingDataset(ABC):
 
 class MPS(DatingDataset):
 
-    def __init__(self, path=os.path.join(DATASETS_PATH, "MPS", "Download")):
+    def __init__(self, path=os.path.join(DATASETS_PATH, "MPS", "Download"), dir_depth=2):
+        self.dir_depth = dir_depth
         super().__init__(path, DatasetName.MPS)
 
     def _read_header_file(self):
-        imgs_path = os.path.join(self.path, "*", "*")
+        imgs_path = self.path
+        
+        for _ in range(self.dir_depth):
+            imgs_path = os.path.join(imgs_path, "*")
+
+        # imgs_path = os.path.join(self.path, "*", "*")
+
         self.header_ls = glob.glob(imgs_path)
 
     def _extract_img_names(self):

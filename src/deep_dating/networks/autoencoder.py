@@ -2,7 +2,6 @@
 import cv2
 import torch
 import torch.nn as nn
-import numpy as np
 from torch.nn.functional import leaky_relu, dropout2d
 from torchvision import transforms
 from torchinfo import summary
