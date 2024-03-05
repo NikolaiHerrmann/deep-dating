@@ -4,7 +4,7 @@ import glob
 import pickle
 import numpy as np
 import pandas as pd
-from sklearn.svm import SVC, SVR
+from sklearn.svm import SVC
 from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
@@ -29,9 +29,7 @@ class DatingClassifier:
             img_name = PreprocessRunner.get_base_img_name(img_name)
 
             if test_dict:
-                if img_name in test_dict:
-                    print("leaking data!")
-                    continue
+                assert img_name not in test_dict, "data is leaking!"
 
             if not img_name in preds:
                 preds[img_name] = {"label": labels[i], "feat": [feats[i]]}
@@ -86,16 +84,13 @@ class DatingClassifier:
         labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train)
 
         labels_val_patch, features_val_patch, img_names_val = self.network_predictor.load(feats_path_val)
-        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, train_dict)
+        labels_val_img, features_val_img, _ = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, train_dict)
 
         scaler = MinMaxScaler(feature_range=(-1, 1))
         features_train_img_scaled = scaler.fit_transform(features_train_img)
         features_val_img_scaled = scaler.transform(features_val_img)
 
         model = SVC(kernel="rbf", C=1, gamma="scale", random_state=SEED)
-        
-        print(features_train_img_scaled.shape)
-        print(features_val_img_scaled.shape)
 
         model.fit(features_train_img_scaled, labels_train_img)
         labels_val_predict_img = model.predict(features_val_img_scaled)
@@ -105,6 +100,15 @@ class DatingClassifier:
         if save_path is not None:
             with open(save_path, "wb") as f:
                 pickle.dump((scaler, model), f)
+            self.load(save_path)
 
         return metrics_nums
         
+    def load(self, classifier_path):
+        with open(classifier_path, "rb") as f:
+            scaler, model = pickle.load(f)
+
+        if self.verbose:
+            print("Model and scaler loading completed!")
+
+        return scaler, model

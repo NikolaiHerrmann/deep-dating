@@ -69,30 +69,20 @@ def preprocess_bin():
 
 
 def run_binarization():
-    from torch.multiprocessing import Pool, set_start_method
-    #torch.set_num_threads(1)
-    set_start_method('spawn', force=True)
-    #x = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean")).X
-    
-    #save_path = os.path.join(DATASETS_PATH, "CLaMM_Training_Clean_Bin")
+    dataset = MPS()
 
-    x = glob.glob(os.path.join(DATASETS_PATH, "CLAMM_Aug", "*.ppm"))
-    save_path = os.path.join(DATASETS_PATH, "CLAMM_Aug_Bin_Test")
+    from torch.multiprocessing import Pool, set_start_method
+    
+    set_start_method('spawn', force=True)
+    
+    x = dataset.X
+    save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_Binet")
     os.makedirs(save_path, exist_ok=True)
     
     predictor = AutoencoderPredictor(save_path=save_path)
 
     with Pool(8) as pool:
-        pool.map(predictor.run, x)
-
-    # for img_path in tqdm(x):
-    #     img = predictor.run(img_path)
-    #     img_name = os.path.basename(img_path)
-
-    #     path = os.path.join(save_path, img_name)
-    #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    #     cv2.imwrite(path, img)
-            
+        pool.map(predictor.run, x)            
 
 
 def test_patch_extraction():
@@ -129,9 +119,11 @@ def run_aug_doc(n=75, test=False):
 
 if __name__ == "__main__":
     #run_aug_doc(test=False)
-    preprocess_pipeline2()
+    #preprocess_pipeline2()
     #preprocess_dating_cnn(MPS())
     #preprocess_bin()
+
+    run_binarization()
 
 
     # parser = argparse.ArgumentParser()

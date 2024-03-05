@@ -2,6 +2,7 @@
 import cv2
 import torch
 import torch.nn as nn
+import numpy as np
 from torch.nn.functional import leaky_relu, dropout2d
 from torchvision import transforms
 from torchinfo import summary
@@ -79,9 +80,12 @@ class Autoencoder(nn.Module):
         self.classification = False
         self.training_mode = True
 
+        self.mean = 0.6144142615182454
+        self.std = 0.2606306621135704
+
         self.transform_input = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5], std=[0.5])
+            transforms.Normalize(mean=[self.mean], std=[self.std])
         ])
 
     def forward(self, x):
@@ -122,6 +126,14 @@ class Autoencoder(nn.Module):
     def transform_img(self, img_path):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         return self.transform_input(img)
+
+    def apply_transforms(self, img, mean, std):
+        #print(mean, std)
+        t = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[mean], std=[std])
+        ])
+        return t(img)
 
     def save(self, path):
         torch.save(self.state_dict(), path)

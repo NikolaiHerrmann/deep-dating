@@ -61,7 +61,6 @@ class CrossVal:
             self.y = list(self.img_level_labels.values())
 
             self.X, self.y = shuffle(self.X, self.y, random_state=SEED)
-            print(len(self.X))
 
             for train_idxs, val_idxs in self.skf.split(self.X, self.y):
                 

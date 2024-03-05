@@ -5,13 +5,16 @@ from deep_dating.prediction import AutoencoderPredictor
 
 
 if __name__ == "__main__":
-    dataset = ScribbleLens()
+    dataset = MPS()
 
     X = dataset.X
+    # random.shuffle(X)
     #random.shuffle(X)
 
-    predictor = AutoencoderPredictor(model_path="runs/unet1/model_epoch_328_split_0.pt")
+    predictor = AutoencoderPredictor()
 
     for x in X:
-        x = "../../datasets/MPS/Download/1450/MPS1450_0160.ppm"
+        x = "../../datasets/MPS/Download/1500/MPS1500_0326.ppm"
+        #x ="/home/nikolai/Downloads/datasets/dibco/2018_img_1/10.bmp"
+        #x = "/home/nikolai/Downloads/datasets/ICDAR2017_CLaMM_task2_task4/500256201_MS0058_0124.jpg"
         predictor.run(x, plot=True)

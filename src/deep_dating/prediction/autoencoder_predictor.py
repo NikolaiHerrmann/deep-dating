@@ -14,18 +14,20 @@ class AutoencoderPredictor:
 
     class PatchDataset(Dataset):
 
-        def __init__(self, patches, model):
+        def __init__(self, patches, model, mean, std):
             self.patches = patches
             self.model = model
+            self.mean = mean
+            self.std = 0.3
 
         def __getitem__(self, idx):
             patch = self.patches[idx]
-            return self.model.transform_input(patch)
+            return self.model.apply_transforms(patch, self.mean, self.std)
 
         def __len__(self):
             return len(self.patches)
 
-    def __init__(self, model_path="runs/unet1/v2_model_epoch_168.pt", 
+    def __init__(self, model_path="runs_v2/binet_aug/model_epoch_328_split_0.pt", 
                  save_path=None, batch_size=32, num_workers=0, verbose=True):
         self.verbose = verbose
         self.model = Autoencoder(verbose=self.verbose)
@@ -39,7 +41,7 @@ class AutoencoderPredictor:
 
     def run(self, img_path, plot=False):
         patches = self.extractor.extract_patches(img_path, plot=plot)
-        dataset = self.PatchDataset(patches, self.model)
+        dataset = self.PatchDataset(patches, self.model, self.extractor.mean, self.extractor.std)
         data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
         outputs = []
 
@@ -81,10 +83,11 @@ class AutoencoderPredictor:
             plt.show()
 
         if self.save_path:
-            img_name = os.path.basename(img_path)
+            img_name = os.path.basename(img_path).rsplit(".", 1)[0] + ".png"
             path = os.path.join(self.save_path, img_name)
-            img_save = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-            cv2.imwrite(path, img_save)
+
+            cv2.imwrite(path, img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
             if self.verbose:
                 print("Saved image")
 
