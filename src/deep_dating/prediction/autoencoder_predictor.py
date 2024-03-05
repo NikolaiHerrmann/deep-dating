@@ -14,20 +14,20 @@ class AutoencoderPredictor:
 
     class PatchDataset(Dataset):
 
-        def __init__(self, patches, model, mean, std):
+        def __init__(self, patches, model, global_mean, global_std):
             self.patches = patches
             self.model = model
-            self.mean = mean
-            self.std = 0.3
+            self.global_mean = global_mean
+            self.global_std = global_std
 
         def __getitem__(self, idx):
             patch = self.patches[idx]
-            return self.model.apply_transforms(patch, self.mean, self.std)
+            return self.model.custom_transform_img(patch, self.global_mean, self.global_std)
 
         def __len__(self):
             return len(self.patches)
 
-    def __init__(self, model_path="runs_v2/binet_aug/model_epoch_328_split_0.pt", 
+    def __init__(self, model_path="runs_v2/binet_normal/model_epoch_275_split_0.pt", 
                  save_path=None, batch_size=32, num_workers=0, verbose=True):
         self.verbose = verbose
         self.model = Autoencoder(verbose=self.verbose)

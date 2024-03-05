@@ -127,8 +127,7 @@ class Autoencoder(nn.Module):
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         return self.transform_input(img)
 
-    def apply_transforms(self, img, mean, std):
-        #print(mean, std)
+    def custom_transform_img(self, img, mean, std):
         t = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(mean=[mean], std=[std])
