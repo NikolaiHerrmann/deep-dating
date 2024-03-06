@@ -27,7 +27,7 @@ def train_dating_cnn():
     batch_size = 32
 
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [0, 3, 4] 
+    avoid_splits = [0, 1, 2] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
