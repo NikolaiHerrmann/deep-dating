@@ -72,6 +72,6 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    #train_dating_cnn()
+    train_dating_cnn()
     #train_autoencoder()
-    train_classifier()
+    #train_classifier()
