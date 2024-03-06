@@ -40,7 +40,7 @@ class PreprocessRunner:
     @staticmethod
     def get_base_img_name(path):
         base_name = os.path.basename(path)
-        return base_name.rsplit("_p", 1)[0]
+        return base_name.rsplit("__", 1)[0]
         
     def run(self, X, y, set_type, preprocessing_func):
         self.process_func = preprocessing_func

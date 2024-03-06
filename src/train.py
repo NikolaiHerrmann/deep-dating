@@ -10,6 +10,10 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 
     model.use_as_feature_extractor()
 
+    if model_path is None:
+        model_path = ""
+        print("Warning model path was none!")
+
     for loader, set_type in [(train_loader, SetType.TRAIN), (val_loader, SetType.VAL)]:
         
         model_file_name = os.path.basename(model_path).rsplit(".", 1)[0] + f"_feats_{set_type.value}_split_{split}.pkl"
@@ -25,9 +29,10 @@ def train_dating_cnn():
     trainer = DatingTrainer("Inception for P2 for MPS with bin images", num_epochs=50, patience=3, exp_name="Mar5-21-59-18")
     n_splits = 5
     batch_size = 32
+    trainer.best_model_path = "runs_v2/Mar5-21-59-18/model_epoch_4_split_1.pt"
 
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [0, 1, 2] 
+    avoid_splits = [0] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
@@ -38,13 +43,15 @@ def train_dating_cnn():
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=11, dropout=True)
+        model.load("runs_v2/Mar5-21-59-18/model_epoch_4_split_1.pt", continue_training=False)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
 
-        trainer.train(model, train_loader, val_loader, i)
+        # trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
+        return
 
 
 def train_autoencoder():
@@ -68,7 +75,7 @@ def train_autoencoder():
 def train_classifier():
     classifier = DatingClassifier()
 
-    classifier.cross_val("runs_v2/MPS_P2_Crossval", n_splits=5)
+    classifier.cross_val("runs_v2/MPS_P1_Crossval", n_splits=5)
 
 
 if __name__ == "__main__":

@@ -57,8 +57,8 @@ class DatingPredictor:
                 all_labels.append(labels)
                 all_paths += list(paths)
 
-        all_labels = np.concatenate(all_labels)
-        all_outputs = np.concatenate(all_outputs)
+        all_labels = np.hstack(all_labels)
+        all_outputs = np.vstack(all_outputs)
 
         with open(save_path, "wb") as f:
             pickle.dump((all_labels, all_outputs, all_paths), f)
