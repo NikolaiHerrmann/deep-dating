@@ -37,7 +37,7 @@ def get_mean_std(img_arr, verbose=True):
 
 if __name__ == "__main__":
 
-    X = BinDataset().X_train
+    X = BinDataset(augment=False).X_train
     get_mean_std(X)
     
     # 0.6144142615182454 0.2606306621135704
