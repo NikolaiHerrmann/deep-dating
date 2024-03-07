@@ -42,8 +42,6 @@ class DatingClassifier:
 
         if read_dict is None:
             read_dict = preds
-        # diff = set(preds.keys()).symmetric_difference(set(read_dict.keys()))
-        # print(diff)
 
         for key in read_dict.keys():
             aggregated_feat = np.mean(preds[key]["feat"], axis=0)
@@ -57,12 +55,12 @@ class DatingClassifier:
         feats_path_val = glob.glob(os.path.join(dir_, f"model*split_{split_num}*val*.pkl"))[0]
         
         labels_train_patch, features_train_patch, img_names_train = self.network_predictor.load(feats_path_train)
-        labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train, read_dict=train_read_dict)
+        labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train, read_dict=None)
 
         labels_val_patch, features_val_patch, img_names_val = self.network_predictor.load(feats_path_val)
-        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, test_dict=train_dict, read_dict=val_read_dict)
+        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, test_dict=train_dict, read_dict=None)
 
-        return (labels_train_img, features_train_img, labels_val_img, features_val_img), train_dict, val_dict
+        return [labels_train_img, features_train_img, labels_val_img, features_val_img], train_dict, val_dict
     
     def cross_val(self, dir_1, dir_2=None, n_splits=5):
         metric_data = []
@@ -70,7 +68,7 @@ class DatingClassifier:
         for i in tqdm(range(n_splits)):
             
             split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
-            split_data_2 = self._get_train_val_split(dir_2, i, train_dict, val_dict) if dir_2 is not None else None
+            split_data_2, _, _ = self._get_train_val_split(dir_2, i, train_dict, val_dict) #if dir_2 is not None else None, None, None
 
             #save_model = os.path.join(dir_, f"classifier_model_split_{i}.pkl") if i == 0 else None
 
@@ -101,15 +99,17 @@ class DatingClassifier:
         labels_train_img, features_train_img, labels_val_img, features_val_img = split_data_1
 
         if split_data_2 is not None:
+            print(len(split_data_2))
             labels_train_img_2, features_train_img_2, labels_val_img_2, features_val_img_2 = split_data_2
+            
 
-            print(labels_train_img.shape, labels_train_img_2.shape)
             assert np.array_equal(labels_train_img, labels_train_img_2)
             assert np.array_equal(labels_val_img, labels_val_img_2)
 
             features_train_img = np.hstack([features_train_img, features_train_img_2])
             features_val_img = np.hstack([features_val_img, features_val_img_2])
-            print(features_train_img.shape)
+
+            # maybe scale each first and then scale
 
         scaler = MinMaxScaler(feature_range=(-1, 1))
         features_train_img_scaled = scaler.fit_transform(features_train_img)

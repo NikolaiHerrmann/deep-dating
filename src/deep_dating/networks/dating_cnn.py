@@ -20,7 +20,7 @@ class DatingCNN(nn.Module):
 
     # For pipeline 2 do: INCEPTION: [("drop", 0.1, True), ("head_drop", 0.2, False)]
 
-    MODEL_DROP_OUT = {INCEPTION: [("drop", 0.2, True), ("head_drop", 0.2, False)], 
+    MODEL_DROP_OUT = {INCEPTION: [("drop", 0.1, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
                       EFFICIENTNET_B4: [("drop", 0.1, True)]}
 
