@@ -2,7 +2,7 @@
 import os
 import cv2
 import glob
-from deep_dating.datasets import load_all_dating_datasets, SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
+from deep_dating.datasets import SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
@@ -13,8 +13,6 @@ from tqdm import tqdm
 
 def preprocess_dating_cnn():
     dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
-
-    print("Running patch extraction for ", dataset.name, "...")
 
     splitter = DatasetSplitter(dataset, None, None)
 
@@ -118,12 +116,13 @@ def run_aug_doc(n=75, test=False):
 
 
 if __name__ == "__main__":
+    pass
     #run_aug_doc(test=False)
     #preprocess_pipeline2()
-    #preprocess_dating_cnn(MPS())
+    #preprocess_dating_cnn()
     #preprocess_bin()
     
-    test_patch_extraction()
+    #test_patch_extraction()
     #run_binarization()
 
 

@@ -68,8 +68,6 @@ class DatingClassifier:
         metric_data = []
 
         for i in tqdm(range(n_splits)):
-            if i in [1, 2, 4, 5]:
-                continue
             
             split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
             split_data_2 = self._get_train_val_split(dir_2, i, train_dict, val_dict) if dir_2 is not None else None

@@ -26,12 +26,12 @@ def train_dating_cnn():
     dataset = DatasetName.MPS
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
-    trainer = DatingTrainer("Inception for P2 for MPS with bin images", num_epochs=50, patience=3, exp_name="Mar5-21-59-18")
+    trainer = DatingTrainer("Inception P2 MPS Bin with good crossval", num_epochs=50, patience=3)
     n_splits = 5
     batch_size = 32
 
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [0, 1] 
+    avoid_splits = [] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
@@ -49,7 +49,6 @@ def train_dating_cnn():
         trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
-        return
 
 
 def train_autoencoder():

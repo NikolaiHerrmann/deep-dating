@@ -148,6 +148,8 @@ class DatasetSplitter:
             self._read_aug_csv()
         
         if self.min_count or self.max_count:
+            if self.verbose:
+                print("Balancing data.")
             os.makedirs(self.aug_path, exist_ok=True)
             self.X_train, self.y_train = self._balance_data(self.X_train, self.y_train)
         

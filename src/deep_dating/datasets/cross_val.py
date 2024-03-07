@@ -61,8 +61,8 @@ class CrossVal:
         if n_splits > 1:
             self.skf = StratifiedKFold(n_splits=n_splits, shuffle=False)
 
-            self.X = list(self.img_level_labels.keys())
-            self.y = list(self.img_level_labels.values())
+            self.X = sorted(list(self.img_level_labels.keys()))
+            self.y = [self.img_level_labels[key] for key in self.X]
 
             self.X, self.y = shuffle(self.X, self.y, random_state=SEED)
 
@@ -76,6 +76,7 @@ class CrossVal:
         elif n_splits == 1:
             for x in [(self.X_train, self.y_train, self.X_val, self.y_val)]:
                 yield x
+
         else:
             print("split number cannot be less than 1.")
 

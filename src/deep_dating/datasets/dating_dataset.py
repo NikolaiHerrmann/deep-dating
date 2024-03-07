@@ -25,6 +25,11 @@ class DatingDataset(ABC):
         self.X = np.asarray(self._extract_img_names())
         self.y = np.asarray(self._extract_img_dates(), dtype=np.float32)
 
+        # Sort to ensure consisting loading for cross-validation later
+        sort_idxs = np.argsort(self.X)
+        self.X = self.X[sort_idxs]
+        self.y = self.y[sort_idxs]
+
         if self.verbose and self.idxs_to_remove:
             print("Removing:", self.X[self.idxs_to_remove])
 
