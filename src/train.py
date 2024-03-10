@@ -27,7 +27,7 @@ def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
-    trainer = DatingTrainer("Inception P1 MPS to check", num_epochs=50, patience=3)
+    trainer = DatingTrainer("Inception P1 ClAMM to check", num_epochs=50, patience=3)
     n_splits = 5
     batch_size = 32
 
@@ -55,9 +55,9 @@ def train_dating_cnn():
 def train_autoencoder():
     dataset = DatasetName.DIBCO
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_Aug")
-    cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT_Aug")
-    trainer = DatingTrainer("train binet with aug and new normalization", num_epochs=400, patience=50)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_No_Aug")
+    cross_val_gt = CrossVal(dataset, preprocess_ext="_Set_GT_No_Aug")
+    trainer = DatingTrainer("train binet with NOOO aug and new normalization", num_epochs=400, patience=50)
 
     (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=1))
     (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=1))      
@@ -84,6 +84,6 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    train_dating_cnn()
-    #train_autoencoder()
+    #train_dating_cnn()
+    train_autoencoder()
     #train_classifier()
