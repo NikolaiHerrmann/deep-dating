@@ -26,8 +26,8 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 def train_dating_cnn():
     dataset = DatasetName.CLAMM
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
-    trainer = DatingTrainer("Inception P1 ClAMM to check", num_epochs=50, patience=3)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
+    trainer = DatingTrainer("P2 ClAMM", num_epochs=50, patience=6)
     n_splits = 5
     batch_size = 32
 
@@ -75,15 +75,15 @@ def train_classifier():
 
     n_splits = 5
 
-    p1_metrics = classifier.cross_val("runs_v2/MPS_P1_Crossval", n_splits=n_splits)
-    p2_metrics = classifier.cross_val("runs_v2/MPS_P2_Crossval", n_splits=n_splits)
-    p1p2_metrics = classifier.cross_val("runs_v2/MPS_P1_Crossval", dir_2="runs_v2/MPS_P2_Crossval", n_splits=n_splits)
+    p1_metrics = classifier.cross_val("runs_v2/CLAMM_P1_Crossval", n_splits=n_splits)
+    # p2_metrics = classifier.cross_val("runs_v2/MPS_P2_Crossval", n_splits=n_splits)
+    # p1p2_metrics = classifier.cross_val("runs_v2/MPS_P1_Crossval", dir_2="runs_v2/MPS_P2_Crossval", n_splits=n_splits)
 
     # pipelines = [p1_metrics, p2_metrics, p1p2_metrics]
     # serialize(pipelines, "runs_v2/graphs/pipeline_results.pkl")
 
 
 if __name__ == "__main__":
-    #train_dating_cnn()
-    train_autoencoder()
+    train_dating_cnn()
+    #train_autoencoder()
     #train_classifier()

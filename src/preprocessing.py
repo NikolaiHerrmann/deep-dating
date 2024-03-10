@@ -67,14 +67,14 @@ def preprocess_bin():
 
 
 def run_binarization():
-    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"))
 
     from torch.multiprocessing import Pool, set_start_method
     
     set_start_method('spawn', force=True)
     
     x = dataset.X
-    save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_Binet")
+    save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_task1_task3_Clean_Binet")
     os.makedirs(save_path, exist_ok=False)
     
     predictor = AutoencoderPredictor(normalize_per_img=False, save_path=save_path)
@@ -119,12 +119,12 @@ def run_aug_doc(n=75, test=False):
 if __name__ == "__main__":
     #pass
     #run_aug_doc(test=False)
-    preprocess_pipeline2()
+    #preprocess_pipeline2()
     #preprocess_dating_cnn()
     #preprocess_bin()
     
     #test_patch_extraction()
-    #run_binarization()
+    run_binarization()
 
 
     # parser = argparse.ArgumentParser()

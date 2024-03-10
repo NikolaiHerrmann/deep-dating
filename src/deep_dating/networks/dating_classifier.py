@@ -3,9 +3,11 @@ import os
 import glob
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.svm import SVC
 from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
@@ -19,7 +21,7 @@ class DatingClassifier:
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.network_predictor = DatingPredictor(verbose=self.verbose)
-        self.metrics = DatingMetrics(alphas=[0, 25, 50])
+        self.metrics = DatingMetrics(alphas=[0, 25, 50], classification=True, average="macro")
         self.feature_range = (-1, 1)
 
     def _merge_patches(self, labels, feats, img_names, test_dict=None, read_dict=None):
@@ -141,12 +143,22 @@ class DatingClassifier:
 
         metrics_nums = self.metrics.calc(labels_val_img, labels_val_predict_img)
 
+        #self.conf_matrix(labels_val_img, labels_val_predict_img)
+
         if save_path is not None:
             with open(save_path, "wb") as f:
                 pickle.dump((scaler_ls, model), f)
             self.load(save_path)
 
         return metrics_nums
+    
+    def conf_matrix(self, model, labels_true, labels_predicted, show=True):
+        cm = confusion_matrix(labels_true, labels_predicted, labels=model.classes_)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
+        disp.plot()
+
+        if show:
+            plt.show()
         
     def load(self, classifier_path):
         with open(classifier_path, "rb") as f:
