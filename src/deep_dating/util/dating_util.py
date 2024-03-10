@@ -3,6 +3,7 @@ import os
 import random
 import numpy as np
 import torch
+import pickle
 import datetime
 import calendar
 import matplotlib.pyplot as plt
@@ -71,3 +72,13 @@ def to_index(y, verbose=True):
         y_idx[i] = idx_lookup[num]
 
     return y_idx, unique_y
+
+
+def serialize(obj, path):
+    with open(path, "wb") as f:
+        pickle.dump(obj, f)
+
+
+def read_serialize(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)

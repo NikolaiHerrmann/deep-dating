@@ -115,7 +115,7 @@ class CLaMM(DatingDataset):
 
     def __init__(self, path=os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training"),
                  file_name_header="FILENAME", date_header="DATE_TYPE", 
-                 script_header="SCRIPT_TYPE", img_exts=["tif", "jpg", "JPG"]):
+                 script_header="SCRIPT_TYPE", img_exts=["tif", "jpg", "JPG", "png"]):
         self.class_range = {1: (1000, 1000),
                             2: (1001, 1100),
                             3: (1101, 1200),
@@ -189,9 +189,6 @@ class ScribbleLens(DatingDataset):
                      5: (1653, 1693),
                      6: (1721, 1726)}
 
-        # start_bin_date=1595, bin_width=20
-        # self.start_bin_date = start_bin_date
-        # self.bin_width = bin_width
         self.class_range_mean = {}
         for key, val in self.bins.items():
             self.class_range_mean[key] = int(np.mean(val))
@@ -297,7 +294,7 @@ class ScribbleLens(DatingDataset):
     #         start_date = end_date
 
     def _apply_bins(self):
-        self.writer_ids_per_bin = {} #[date].add(writer_id)
+        self.writer_ids_per_bin = {}
 
         new_dates = np.zeros(self.date_ls.shape)
         date_np = np.array(self.date_ls)

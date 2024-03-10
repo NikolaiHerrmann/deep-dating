@@ -37,8 +37,8 @@ class DatingPredictor:
         all_labels = []
         all_paths = []
 
-        self.device = get_torch_device(verbose=self.verbose)
-        model.to(self.device)
+        device = get_torch_device(verbose=self.verbose)
+        model.to(device)
 
         if not save_path:
             save_path = "pred_" + get_date_as_str() + ".pkl"
@@ -48,7 +48,7 @@ class DatingPredictor:
         with torch.no_grad():
             for inputs, labels, paths in tqdm(data_loader, disable = not self.verbose):
 
-                inputs = inputs.to(self.device)
+                inputs = inputs.to(device)
                 outputs = model(inputs)
                 
                 outputs, labels = self._format_output_and_labels(model, data_loader, outputs, labels)

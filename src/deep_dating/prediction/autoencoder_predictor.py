@@ -14,22 +14,23 @@ class AutoencoderPredictor:
 
     class PatchDataset(Dataset):
 
-        def __init__(self, patches, model, global_mean, global_std):
+        def __init__(self, patches, model, mean, std):
             self.patches = patches
             self.model = model
-            self.global_mean = global_mean
-            self.global_std = global_std
+            self.mean = mean
+            self.std = std
 
         def __getitem__(self, idx):
             patch = self.patches[idx]
-            return self.model.custom_transform_img(patch, self.global_mean, self.global_std)
+            return self.model.custom_transform_img(patch, self.mean, self.std)
 
         def __len__(self):
             return len(self.patches)
 
-    def __init__(self, model_path="runs_v2/binet_normal/model_epoch_275_split_0.pt", 
+    def __init__(self, normalize_per_img, model_path="runs_v2/Binet_aug_norm/model_epoch_275_split_0.pt", 
                  save_path=None, batch_size=32, num_workers=0, verbose=True):
         self.verbose = verbose
+        self.normalize_per_img = normalize_per_img
         self.model = Autoencoder(verbose=self.verbose)
         self.model.load(model_path, continue_training=False)
         self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False)
@@ -41,7 +42,9 @@ class AutoencoderPredictor:
 
     def run(self, img_path, plot=False):
         patches = self.extractor.extract_patches(img_path, plot=plot)
-        dataset = self.PatchDataset(patches, self.model, self.extractor.mean, self.extractor.std)
+
+        mean, std = (self.extractor.mean, self.extractor.std) if self.normalize_per_img else (self.model.mean, self.model.std)
+        dataset = self.PatchDataset(patches, self.model, mean, std)
         data_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
         outputs = []
 

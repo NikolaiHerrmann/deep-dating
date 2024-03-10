@@ -3,6 +3,7 @@ import os
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder, DatingClassifier
 from deep_dating.prediction import DatingPredictor
+from deep_dating.util import serialize
 
 
 def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, split):
@@ -23,10 +24,10 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 
 
 def train_dating_cnn():
-    dataset = DatasetName.MPS
+    dataset = DatasetName.CLAMM
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
-    trainer = DatingTrainer("Inception P1 MPS to check", num_epochs=50, patience=6)
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
+    trainer = DatingTrainer("Inception P1 MPS to check", num_epochs=50, patience=3)
     n_splits = 5
     batch_size = 32
 
@@ -41,7 +42,7 @@ def train_dating_cnn():
 
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=11, dropout=True)
+        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=15, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
@@ -72,7 +73,14 @@ def train_autoencoder():
 def train_classifier():
     classifier = DatingClassifier()
 
-    classifier.cross_val("runs_v2/MPS_P1_Crossval", dir_2="runs_v2/MPS_P2_Crossval", n_splits=1)
+    n_splits = 5
+
+    p1_metrics = classifier.cross_val("runs_v2/MPS_P1_Crossval", n_splits=n_splits)
+    p2_metrics = classifier.cross_val("runs_v2/MPS_P2_Crossval", n_splits=n_splits)
+    p1p2_metrics = classifier.cross_val("runs_v2/MPS_P1_Crossval", dir_2="runs_v2/MPS_P2_Crossval", n_splits=n_splits)
+
+    # pipelines = [p1_metrics, p2_metrics, p1p2_metrics]
+    # serialize(pipelines, "runs_v2/graphs/pipeline_results.pkl")
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.svm import SVC
+from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif
 from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
@@ -19,6 +20,7 @@ class DatingClassifier:
         self.verbose = verbose
         self.network_predictor = DatingPredictor(verbose=self.verbose)
         self.metrics = DatingMetrics(alphas=[0, 25, 50])
+        self.feature_range = (-1, 1)
 
     def _merge_patches(self, labels, feats, img_names, test_dict=None, read_dict=None):
         preds = {}
@@ -55,10 +57,10 @@ class DatingClassifier:
         feats_path_val = glob.glob(os.path.join(dir_, f"model*split_{split_num}*val*.pkl"))[0]
         
         labels_train_patch, features_train_patch, img_names_train = self.network_predictor.load(feats_path_train)
-        labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train, read_dict=None)
+        labels_train_img, features_train_img, train_dict = self._merge_patches(labels_train_patch, features_train_patch, img_names_train, read_dict=train_read_dict)
 
         labels_val_patch, features_val_patch, img_names_val = self.network_predictor.load(feats_path_val)
-        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, test_dict=train_dict, read_dict=None)
+        labels_val_img, features_val_img, val_dict = self._merge_patches(labels_val_patch, features_val_patch, img_names_val, test_dict=train_dict, read_dict=val_read_dict)
 
         return [labels_train_img, features_train_img, labels_val_img, features_val_img], train_dict, val_dict
     
@@ -68,7 +70,10 @@ class DatingClassifier:
         for i in tqdm(range(n_splits)):
             
             split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
-            split_data_2, _, _ = self._get_train_val_split(dir_2, i, train_dict, val_dict) #if dir_2 is not None else None, None, None
+            if dir_2 is not None:
+                split_data_2, _, _ = self._get_train_val_split(dir_2, i, train_dict, val_dict)
+            else:
+                split_data_2 = None
 
             #save_model = os.path.join(dir_, f"classifier_model_split_{i}.pkl") if i == 0 else None
 
@@ -95,25 +100,39 @@ class DatingClassifier:
             print(mean_metrics.to_frame().T)
             print(str_)
 
+        return mean_metrics, std_metrics
+
     def train(self, split_data_1, split_data_2=None, save_path=None):
+        scaler_ls = []
+
         labels_train_img, features_train_img, labels_val_img, features_val_img = split_data_1
 
+        scaler1 = MinMaxScaler(feature_range=self.feature_range)
+        scaler_ls.append(scaler1)
+        features_train_img_scaled = scaler1.fit_transform(features_train_img)
+        features_val_img_scaled = scaler1.transform(features_val_img)
+
+        select = SelectKBest(f_classif, k=400)
+        features_train_img_scaled = select.fit_transform(features_train_img_scaled, labels_train_img)
+        features_val_img_scaled = select.transform(features_val_img_scaled)
+
         if split_data_2 is not None:
-            print(len(split_data_2))
             labels_train_img_2, features_train_img_2, labels_val_img_2, features_val_img_2 = split_data_2
-            
 
-            assert np.array_equal(labels_train_img, labels_train_img_2)
-            assert np.array_equal(labels_val_img, labels_val_img_2)
+            assert np.array_equal(labels_train_img, labels_train_img_2), "train labels do not match between pipelines"
+            assert np.array_equal(labels_val_img, labels_val_img_2), "val labels do not match between pipelines"
 
-            features_train_img = np.hstack([features_train_img, features_train_img_2])
-            features_val_img = np.hstack([features_val_img, features_val_img_2])
+            scaler2 = MinMaxScaler(feature_range=self.feature_range)
+            scaler_ls.append(scaler2)
+            features_train_img_scaled_2 = scaler2.fit_transform(features_train_img_2)
+            features_val_img_scaled_2 = scaler2.transform(features_val_img_2)
 
-            # maybe scale each first and then scale
+            select = SelectKBest(f_classif, k=400)
+            features_train_img_scaled_2 = select.fit_transform(features_train_img_scaled_2, labels_train_img)
+            features_val_img_scaled_2 = select.transform(features_val_img_scaled_2)
 
-        scaler = MinMaxScaler(feature_range=(-1, 1))
-        features_train_img_scaled = scaler.fit_transform(features_train_img)
-        features_val_img_scaled = scaler.transform(features_val_img)
+            features_train_img_scaled = np.hstack([features_train_img_scaled, features_train_img_scaled_2])
+            features_val_img_scaled = np.hstack([features_val_img_scaled, features_val_img_scaled_2])
 
         model = SVC(kernel="rbf", C=1, gamma="scale", random_state=SEED)
 
@@ -124,16 +143,16 @@ class DatingClassifier:
 
         if save_path is not None:
             with open(save_path, "wb") as f:
-                pickle.dump((scaler, model), f)
+                pickle.dump((scaler_ls, model), f)
             self.load(save_path)
 
         return metrics_nums
         
     def load(self, classifier_path):
         with open(classifier_path, "rb") as f:
-            scaler, model = pickle.load(f)
+            scaler_ls, model = pickle.load(f)
 
         if self.verbose:
             print("Model and scaler loading completed!")
 
-        return scaler, model
+        return scaler_ls, model

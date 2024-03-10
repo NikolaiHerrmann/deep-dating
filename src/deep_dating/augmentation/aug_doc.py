@@ -113,6 +113,8 @@ class AugDoc:
         img = cv2.GaussianBlur(img, (5, 5), 0)
 
         img_full = np.full((height, width, 3), background, dtype=np.uint8)
+
+        # Add a small border, so text is not right on edge, will look not real with book bindings
         img_full[50:height-50, 50:width-50] = img
 
         mask = cv2.cvtColor(img_full, cv2.COLOR_BGR2GRAY)

@@ -12,9 +12,10 @@ from tqdm import tqdm
 
 
 def preprocess_dating_cnn():
-    dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
+    dataset = CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
 
-    splitter = DatasetSplitter(dataset, None, None)
+    splitter = DatasetSplitter(dataset, None, None, test_size=0)
+    exit()
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299", resize=299)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
@@ -38,8 +39,8 @@ def preprocess_dating_cnn_test(dataset):
 
    
 def preprocess_pipeline2():
-    dataset = MPS() #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
+    dataset = CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    splitter = DatasetSplitter(dataset, None, None, test_size=0) #400, test_size=0)
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299")
     preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
@@ -66,7 +67,7 @@ def preprocess_bin():
 
 
 def run_binarization():
-    dataset = MPS()
+    dataset = CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
 
     from torch.multiprocessing import Pool, set_start_method
     
@@ -74,9 +75,9 @@ def run_binarization():
     
     x = dataset.X
     save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_Binet")
-    os.makedirs(save_path, exist_ok=True)
+    os.makedirs(save_path, exist_ok=False)
     
-    predictor = AutoencoderPredictor(save_path=save_path)
+    predictor = AutoencoderPredictor(normalize_per_img=False, save_path=save_path)
 
     with Pool(8) as pool:
         pool.map(predictor.run, x)            
@@ -116,9 +117,9 @@ def run_aug_doc(n=75, test=False):
 
 
 if __name__ == "__main__":
-    pass
+    #pass
     #run_aug_doc(test=False)
-    #preprocess_pipeline2()
+    preprocess_pipeline2()
     #preprocess_dating_cnn()
     #preprocess_bin()
     
