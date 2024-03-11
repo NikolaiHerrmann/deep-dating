@@ -12,10 +12,11 @@ from tqdm import tqdm
 
 
 def preprocess_dating_cnn():
-    dataset = CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
+    dataset = ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
 
-    splitter = DatasetSplitter(dataset, None, None, test_size=0)
-    exit()
+    dataset.read_from_second_dir(os.path.join(DATASETS_PATH, "SCRIBBLE_Binet"))
+
+    splitter = DatasetSplitter(dataset, None, None)
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299", resize=299)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
@@ -29,11 +30,14 @@ def preprocess_dating_cnn():
             print("Skipping", set_type)
 
 
-def preprocess_dating_cnn_test(dataset):
+def preprocess_dating_cnn_test():
+    dataset = CLaMM_Test_Task3()#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
+    exit()
+
     print("Running patch extraction for ", dataset.name, "...")
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_Test")
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4).extract_patches
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test")
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
     preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
@@ -94,6 +98,7 @@ def test_patch_extraction():
     patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, show_lines_in_plot=False)
 
     for x in X:
+        x = os.path.join(DATASETS_PATH, "SCRIBBLE_Binet", "originalpage.page0030.0.png")
         patch_extractor.extract_patches(x)
         patch_extractor.save_plot(show=True)
 
@@ -120,11 +125,13 @@ if __name__ == "__main__":
     #pass
     #run_aug_doc(test=False)
     #preprocess_pipeline2()
-    #preprocess_dating_cnn()
+    preprocess_dating_cnn()
     #preprocess_bin()
     
     #test_patch_extraction()
-    run_binarization()
+    #run_binarization()
+
+    #preprocess_dating_cnn_test()
 
 
     # parser = argparse.ArgumentParser()

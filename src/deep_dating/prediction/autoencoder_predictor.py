@@ -28,12 +28,13 @@ class AutoencoderPredictor:
             return len(self.patches)
 
     def __init__(self, normalize_per_img, model_path="runs_v2/Binet_aug_norm/model_epoch_275_split_0.pt", 
-                 save_path=None, batch_size=32, num_workers=0, verbose=True):
+                 save_path=None, batch_size=32, num_workers=0, 
+                 detect_black_text=True, verbose=True):
         self.verbose = verbose
         self.normalize_per_img = normalize_per_img
         self.model = Autoencoder(verbose=self.verbose)
         self.model.load(model_path, continue_training=False)
-        self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False)
+        self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False, detect_black_text=detect_black_text)
         self.device = get_torch_device(self.verbose)
         self.model.to(self.device)
         self.save_path = save_path

@@ -25,20 +25,45 @@ class DatingDataset(ABC):
         self.X = np.asarray(self._extract_img_names())
         self.y = np.asarray(self._extract_img_dates(), dtype=np.float32)
 
+        if self.verbose and self.idxs_to_remove:
+            print("Removing:", self.X[self.idxs_to_remove])
+        
+        self.X = np.delete(self.X, self.idxs_to_remove)
+        self.y = np.delete(self.y, self.idxs_to_remove)
+
         # Sort to ensure consisting loading for cross-validation later
         sort_idxs = np.argsort(self.X)
         self.X = self.X[sort_idxs]
         self.y = self.y[sort_idxs]
 
-        if self.verbose and self.idxs_to_remove:
-            print("Removing:", self.X[self.idxs_to_remove])
-
-        self.X = np.delete(self.X, self.idxs_to_remove)
-        self.y = np.delete(self.y, self.idxs_to_remove)
-
         assert len(self.X) == len(self.y), "Images and dates not of equal length!"
         
         self.size = len(self.X)
+
+        if self.verbose:
+            print("Size:", self.size)
+
+    def write_to_csv(self, path):
+        X = [os.path.basename(x).rsplit(".", 1)[0] for x in self.X]
+        df = pd.DataFrame({"file": X, "year": self.y})
+        df.to_csv(path, index=False)
+
+    def _same_file(self, f1, f2):
+        return os.path.basename(f1).rsplit(".", 1)[0] == os.path.basename(f2).rsplit(".", 1)[0]
+
+    def read_from_second_dir(self, path, ext="*.png"):
+        X_new = glob.glob(os.path.join(path, ext))
+
+        for i, old_file in enumerate(self.X):
+            found = False
+            for new_file in X_new:
+                if self._same_file(old_file, new_file):
+                    self.X[i] = new_file
+                    found = True
+                    break
+            if not found:
+                raise Exception(f"No match found for {new_file} aborting!")
+            
 
     @abstractmethod
     def _read_header_file(self):

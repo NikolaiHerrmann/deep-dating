@@ -22,7 +22,8 @@ class PatchExtractor:
                  line_peak_distance=50, num_random_patches=20, plot=True, 
                  patch_size=256, calc_pixel_overlap=True,
                  rm_white_pixel_ratio=0.98, drop_out_rate=0, min_comp_count=5,
-                 padding_color=0, is_binary=False, show_lines_in_plot=True):
+                 padding_color=0, is_binary=False, show_lines_in_plot=True,
+                 detect_black_text=True):
         self.method = method
         self.num_lines_per_patch = num_lines_per_patch
         self.line_peak_distance = line_peak_distance
@@ -37,6 +38,7 @@ class PatchExtractor:
         self.padding_color = padding_color
         self.is_binary = is_binary
         self.show_lines_in_plot = show_lines_in_plot
+        self.detect_black_text = detect_black_text
         self.num_pixel_overlap = 0
         self.method_funcs = {PatchMethod.RANDOM: self._extract_random,
                              PatchMethod.RANDOM_LINES: self._extract_random_lines,
@@ -79,6 +81,9 @@ class PatchExtractor:
     def _read_img(self, img_obj):
         self.img_org = cv2.imread(img_obj)
         self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
+
+        if not self.detect_black_text:
+            self.img = 255 - self.img
         
         self.mean = np.mean(self.img) / 255
         self.std = np.std(self.img) / 255

@@ -114,9 +114,9 @@ class DatingClassifier:
         features_train_img_scaled = scaler1.fit_transform(features_train_img)
         features_val_img_scaled = scaler1.transform(features_val_img)
 
-        select = SelectKBest(f_classif, k=400)
-        features_train_img_scaled = select.fit_transform(features_train_img_scaled, labels_train_img)
-        features_val_img_scaled = select.transform(features_val_img_scaled)
+        # select = SelectKBest(f_classif, k=400)
+        # features_train_img_scaled = select.fit_transform(features_train_img_scaled, labels_train_img)
+        # features_val_img_scaled = select.transform(features_val_img_scaled)
 
         if split_data_2 is not None:
             labels_train_img_2, features_train_img_2, labels_val_img_2, features_val_img_2 = split_data_2
@@ -129,9 +129,9 @@ class DatingClassifier:
             features_train_img_scaled_2 = scaler2.fit_transform(features_train_img_2)
             features_val_img_scaled_2 = scaler2.transform(features_val_img_2)
 
-            select = SelectKBest(f_classif, k=400)
-            features_train_img_scaled_2 = select.fit_transform(features_train_img_scaled_2, labels_train_img)
-            features_val_img_scaled_2 = select.transform(features_val_img_scaled_2)
+            # select = SelectKBest(f_classif, k=400)
+            # features_train_img_scaled_2 = select.fit_transform(features_train_img_scaled_2, labels_train_img)
+            # features_val_img_scaled_2 = select.transform(features_val_img_scaled_2)
 
             features_train_img_scaled = np.hstack([features_train_img_scaled, features_train_img_scaled_2])
             features_val_img_scaled = np.hstack([features_val_img_scaled, features_val_img_scaled_2])
