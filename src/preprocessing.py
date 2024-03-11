@@ -43,8 +43,8 @@ def preprocess_dating_cnn_test():
 
    
 def preprocess_pipeline2():
-    dataset = CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
-    splitter = DatasetSplitter(dataset, None, None, test_size=0) #400, test_size=0)
+    dataset = ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299")
     preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
@@ -124,8 +124,8 @@ def run_aug_doc(n=75, test=False):
 if __name__ == "__main__":
     #pass
     #run_aug_doc(test=False)
-    #preprocess_pipeline2()
-    preprocess_dating_cnn()
+    preprocess_pipeline2()
+    #preprocess_dating_cnn()
     #preprocess_bin()
     
     #test_patch_extraction()

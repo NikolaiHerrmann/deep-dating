@@ -26,15 +26,13 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 def train_dating_cnn():
     dataset = DatasetName.SCRIBBLE
 
-    cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
-    trainer = DatingTrainer("P1 Scribble 2nd run", num_epochs=50, patience=3, exp_name="Mar11-11-0-57")
+    cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
+    trainer = DatingTrainer("P2 Scribble", num_epochs=50, patience=6)
     n_splits = 5
     batch_size = 32
 
-    trainer.best_model_path = "runs_v2/Mar11-11-0-57/model_epoch_6_split_2.pt"
-
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [0, 1, 3, 4] 
+    avoid_splits = [] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         
@@ -45,12 +43,11 @@ def train_dating_cnn():
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=6, dropout=True)
-        model.load(trainer.best_model_path, continue_training=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
 
-        #trainer.train(model, train_loader, val_loader, i)
+        trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
 
@@ -78,9 +75,9 @@ def train_classifier():
 
     n_splits = 5
 
-    p1_metrics = classifier.cross_val("runs_v2/CLAMM_P1_Crossval", n_splits=n_splits)
-    p2_metrics = classifier.cross_val("runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
-    p1p2_metrics = classifier.cross_val("runs_v2/CLAMM_P1_Crossval", dir_2="runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
+    p1_metrics = classifier.cross_val("runs_v2/SCRIBBLE_P1_Crossval", n_splits=n_splits)
+    # p2_metrics = classifier.cross_val("runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
+    # p1p2_metrics = classifier.cross_val("runs_v2/CLAMM_P1_Crossval", dir_2="runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
 
     # pipelines = [p1_metrics, p2_metrics, p1p2_metrics]
     # serialize(pipelines, "runs_v2/graphs/pipeline_results.pkl")
