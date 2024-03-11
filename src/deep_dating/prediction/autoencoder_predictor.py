@@ -41,7 +41,7 @@ class AutoencoderPredictor:
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-    def run(self, img_path, plot=False):
+    def run(self, img_path, plot=False, extra_output=False, show=True):
         patches = self.extractor.extract_patches(img_path, plot=plot)
 
         mean, std = (self.extractor.mean, self.extractor.std) if self.normalize_per_img else (self.model.mean, self.model.std)
@@ -84,7 +84,9 @@ class AutoencoderPredictor:
             ax[1, 1].set_title("Otsu")
 
             fig.tight_layout()
-            plt.show()
+
+            if show:
+                plt.show()
 
         if self.save_path:
             img_name = os.path.basename(img_path).rsplit(".", 1)[0] + ".png"
@@ -95,4 +97,6 @@ class AutoencoderPredictor:
             if self.verbose:
                 print("Saved image")
 
+        if extra_output:
+            return img, self.extractor.img, self.extractor.img_bin, self.extractor.img_bin_otsu
         return img

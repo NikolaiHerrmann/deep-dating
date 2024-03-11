@@ -27,12 +27,12 @@ def train_dating_cnn():
     dataset = DatasetName.SCRIBBLE
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P1_Bin_299")
-    trainer = DatingTrainer("P1 Scribble", num_epochs=50, patience=3)
+    trainer = DatingTrainer("P1 Scribble 2nd run", num_epochs=50, patience=3, exp_name="Mar11-11-0-57")
     n_splits = 5
     batch_size = 32
 
     # leave empty, just in case program crashes and need to re-run
-    avoid_splits = [] 
+    avoid_splits = [0, 1, 2] 
 
     for i, (X_train, y_train, X_val, y_val) in enumerate(cross_val.get_split(n_splits=n_splits)):
         

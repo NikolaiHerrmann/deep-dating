@@ -33,9 +33,9 @@ def save_figure(title, fig=None, fig_dir=FIGURE_PATH, show=False, pdf=True, png=
     if not fig:
         fig = plt.gcf()
     if png:
-        fig.savefig(os.path.join(fig_dir, title + ".png"), dpi=300, bbox_inches="tight")
+        fig.savefig(os.path.join(fig_dir, title + ".png"), dpi=600, bbox_inches="tight")
     if pdf:
-        fig.savefig(os.path.join(fig_dir, title + ".pdf"), bbox_inches="tight")
+        fig.savefig(os.path.join(fig_dir, title + ".pdf"), dpi=600, bbox_inches="tight")
     if show:
         plt.show()
 

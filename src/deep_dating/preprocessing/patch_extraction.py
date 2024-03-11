@@ -45,11 +45,11 @@ class PatchExtractor:
                              PatchMethod.SLIDING_WINDOW_LINES: self._extract_sliding_window_lines,
                              PatchMethod.SLIDING_WINDOW: self._extract_sliding_window}
     
-    def extract_patches(self, img_obj, method=None, plot=None):
+    def extract_patches(self, img_obj, method=None, plot=None, no_read_object=False):
         if plot is not None:
             self.plot = plot
 
-        self._read_img(img_obj)
+        self._read_img(img_obj, no_read_object)
 
         if method:
             self.method = method
@@ -78,9 +78,12 @@ class PatchExtractor:
             print("No extra draw info was saved, set plot=True")
         return self.extra_draw_info
 
-    def _read_img(self, img_obj):
-        self.img_org = cv2.imread(img_obj)
-        self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
+    def _read_img(self, img_obj, no_read_object):
+        if no_read_object:
+            self.img = img_obj
+        else:
+            self.img_org = cv2.imread(img_obj)
+            self.img = cv2.cvtColor(self.img_org, cv2.COLOR_BGR2GRAY)
 
         if not self.detect_black_text:
             self.img = 255 - self.img
