@@ -46,6 +46,12 @@ def plt_clear():
     plt.close()
 
 
+def remove_ticks(ax):
+    for x in ax:
+        x.set_xticks([])
+        x.set_yticks([])
+
+
 def get_date_as_str():
     now = datetime.datetime.now()
     return f"{calendar.month_abbr[now.month]}{now.day}-{now.hour}-{now.minute}-{now.second}"

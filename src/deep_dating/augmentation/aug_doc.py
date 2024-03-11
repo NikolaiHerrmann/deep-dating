@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from augraphy import BookBinding, PageBorder, BadPhotoCopy, ShadowCast, NoisyLines, BleedThrough, Jpeg, Geometric
 from lorem_text import lorem
-from deep_dating.util import save_figure
+from deep_dating.util import save_figure, remove_ticks
 
 
 class AugDoc:
@@ -15,6 +15,7 @@ class AugDoc:
         self.plot = plot
         self.save_img_dir = save_img_dir
         self.save_gt_dir = save_gt_dir
+        self.print_count = 1
 
         self.book_binding = BookBinding(shadow_radius_range=(50, 500),
                                         curve_range_right=(50, 300),
@@ -91,7 +92,9 @@ class AugDoc:
                       cv2.FONT_HERSHEY_SCRIPT_SIMPLEX, cv2.FONT_HERSHEY_SCRIPT_COMPLEX]
 
 
-    def make_img(self, img_name, num_words_range=(1, 20), img_dim_range=(400, 800), num_lines_range=(3, 10)):
+    def make_img(self, img_name, num_words_range=(1, 20), 
+                 img_dim_range=(400, 800), num_lines_range=(3, 10),
+                 print_count=0):
         height, width = (random.randint(*img_dim_range), random.randint(*img_dim_range))
         
         font = np.random.choice(self.fonts, size=1)[0]
@@ -166,10 +169,15 @@ class AugDoc:
         assert mask.shape == img_full.shape[:2], "mask and image are not of same size!"
 
         if self.plot:
-            fig, ax = plt.subplots(1, 2)
+            fig, ax = plt.subplots(1, 2, figsize=(6, 4))
             ax[0].imshow(img_full)
+            ax[0].set_title(f"Synthetic Image {print_count}")
             ax[1].imshow(mask, cmap="gray")
-            save_figure("aug_doc_example", show=True)
+            ax[1].set_title(f"Synthetic Ground Truth {print_count}")
+
+            remove_ticks(ax)
+            plt.tight_layout()
+
         else:
             img_name_save = img_name + ".png"
             gt_name_save = img_name + "_gt.png"

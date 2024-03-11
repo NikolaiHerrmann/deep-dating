@@ -6,9 +6,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from deep_dating.datasets import SetType
-from deep_dating.util import save_figure, DATASETS_PATH, plt_clear
+from deep_dating.util import save_figure, DATASETS_PATH, plt_clear, remove_ticks
 from deep_dating.prediction import AutoencoderPredictor
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
+from deep_dating.augmentation import AugDoc
 
 
 def pipeline_compare(p1_metrics, p2_metrics, p1p2_metrics):
@@ -74,9 +75,7 @@ def binet_compare():
         ax[4].imshow(otsu_img, cmap="gray")
         ax[4].set_title("Otsu")
 
-        for x in ax:
-            x.set_xticks([])
-            x.set_yticks([])
+        remove_ticks(ax)
 
         plt.tight_layout()
         crop = "_c" if crop else ""
@@ -102,3 +101,23 @@ def binet_compare():
         plot(gray_img, aug_img, non_aug_img, sauvola_img, otsu_img, i, False)
 
 
+def binet_synthetic():
+    examples = [3, 4, 2, 19]
+    examples_copy = examples.copy()
+    aug_doc = AugDoc(plot=True)
+    count = 0
+    print_count = -1
+
+    while examples_copy:
+        plt_clear()
+
+        if count in examples_copy:
+            print_count = examples.index(count) + 1
+
+        aug_doc.make_img("", print_count=print_count)
+ 
+        if count in examples_copy:
+            examples_copy.remove(count)
+            save_figure(f"aug_ex_{print_count}")
+
+        count += 1
