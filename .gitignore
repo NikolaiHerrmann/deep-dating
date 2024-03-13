@@ -6,3 +6,4 @@ runs*/
 *.npy
 *.pkl
 *_SetType.*
+*benchmark*

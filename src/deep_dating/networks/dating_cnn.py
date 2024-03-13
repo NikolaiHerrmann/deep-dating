@@ -112,6 +112,11 @@ class DatingCNN(nn.Module):
         if self.verbose:
             print("Changed last layer to:", type(discard_layer))
 
+    def use_as_feature_extractor(self):
+        self._discard_output_layer()
+        self.feature_extractor = True
+        self.eval()
+
     def load(self, path, continue_training, use_as_feat_extractor=False):
         self.load_state_dict(torch.load(path, map_location=get_torch_device(self.verbose)))
 
@@ -121,22 +126,20 @@ class DatingCNN(nn.Module):
         else:
             if use_as_feat_extractor:
                 self.use_as_feature_extractor()
+            else:
+                self.final_activation = nn.Softmax(dim=1)
+                if self.verbose:
+                    print("Changed final activation to softmax")
             self.eval()
 
         if self.verbose:
             print("Model loading completed!")
-
-    def use_as_feature_extractor(self):
-        self._discard_output_layer()
-        self.feature_extractor = True
-        self.eval()
 
     def transform_img(self, img_path):
         img = Image.open(img_path).convert("RGB")
         return self.apply_transforms(img)
     
     def apply_transforms(self, img):
-        #img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return self.transform_input(img)
     
     def summary(self, batch_size=32):

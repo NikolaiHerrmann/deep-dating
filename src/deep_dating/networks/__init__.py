@@ -1,3 +1,4 @@
+from .voter import *
 from .model_type import *
 from .early_stopper import *
 from .dating_cnn import *

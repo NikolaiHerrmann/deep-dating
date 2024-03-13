@@ -5,14 +5,18 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import keras
+from keras import layers
+from keras.utils import to_categorical
+from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
-from sklearn.feature_selection import SelectKBest, f_classif, mutual_info_classif
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
 from deep_dating.preprocessing import PreprocessRunner
 from deep_dating.util import SEED
+from deep_dating.networks import Voter
 from tqdm import tqdm
 
 
@@ -22,7 +26,8 @@ class DatingClassifier:
         self.verbose = verbose
         self.network_predictor = DatingPredictor(verbose=self.verbose)
         self.metrics = DatingMetrics(alphas=[0, 25, 50], classification=True, average="macro")
-        self.feature_range = (-1, 1)
+        self.voter = Voter()
+        self.feature_range = (0, 1)
 
     def _merge_patches(self, labels, feats, img_names, test_dict=None, read_dict=None):
         preds = {}
@@ -66,20 +71,33 @@ class DatingClassifier:
 
         return [labels_train_img, features_train_img, labels_val_img, features_val_img], train_dict, val_dict
     
-    def cross_val(self, dir_1, dir_2=None, n_splits=5):
+    def _get_test_split(self, dir_, split_num, read_dict=None):
+        feats_path_test = glob.glob(os.path.join(dir_, f"model*split_{split_num}*test*.pkl"))[0]
+        
+        labels_test_patch, features_test_patch, img_names_test = self.network_predictor.load(feats_path_test)
+        labels_test_img, features_test_img, test_dict = self._merge_patches(labels_test_patch, features_test_patch, img_names_test, read_dict=read_dict)
+
+        return [labels_test_img, features_test_img], test_dict
+
+    def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True):
         metric_data = []
 
         for i in tqdm(range(n_splits)):
-            
-            split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
-            if dir_2 is not None:
-                split_data_2, _, _ = self._get_train_val_split(dir_2, i, train_dict, val_dict)
+
+            is_concat = "_concat" if dir_2 is not None else ""
+            model_path = os.path.join(dir_1, f"classifier_model_split_{i}{is_concat}.pkl")
+
+            if train:
+                split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
+                split_data_2 = self._get_train_val_split(dir_2, i, train_dict, val_dict)[0] if dir_2 is not None else None
+
+                metrics_nums = self.train(split_data_1, split_data_2, save_path=model_path)
             else:
-                split_data_2 = None
+                split_data_1, _dict = self._get_test_split(dir_1, i)
+                split_data_2 = self._get_test_split(dir_2, i, _dict)[0] if dir_2 is not None else None
 
-            #save_model = os.path.join(dir_, f"classifier_model_split_{i}.pkl") if i == 0 else None
+                metrics_nums = self.predict(model_path, split_data_1, split_data_2)
 
-            metrics_nums = self.train(split_data_1, split_data_2, save_path=None)
             metric_data.append(metrics_nums)
 
         df = pd.DataFrame(metric_data)
@@ -102,7 +120,67 @@ class DatingClassifier:
             print(mean_metrics.to_frame().T)
             print(str_)
 
+        # if not train:
+        #     print(self.voter.predict())
+            
+        self.voter.reset()
+
         return mean_metrics, std_metrics
+
+    def nn_model(self, features_train_img, labels_train_img, features_val_img, labels_val_img):
+        label_encoder = LabelEncoder()
+
+        y_train = label_encoder.fit_transform(labels_train_img)
+        y_train = to_categorical(y_train)
+        y_val = label_encoder.transform(labels_val_img)
+        y_val = to_categorical(y_val)
+
+        input_size = features_train_img.shape[1]
+        n_classes = len(label_encoder.classes_)
+
+        model = keras.Sequential([
+            keras.Input(shape=(input_size)),
+            layers.Dense(input_size, activation="relu"),
+            layers.Dropout(0.3),
+            layers.BatchNormalization(),
+            layers.Dense(n_classes, activation="softmax"),
+        ])
+
+        batch_size = 64
+        epochs = 50
+
+        early_stopping = keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True)
+        model.compile(loss="categorical_crossentropy", optimizer=keras.optimizers.Adam(learning_rate=0.00001), metrics=["accuracy"])
+        model.fit(features_train_img, y_train, batch_size=batch_size, epochs=epochs, validation_data=(features_val_img, y_val), callbacks=[early_stopping])
+
+        predictions = model.predict(features_val_img)
+        predictions = predictions.argmax(axis=-1)
+        predictions = label_encoder.inverse_transform(predictions)
+
+        return predictions, model, label_encoder
+    
+    def predict(self, model_path, split_data_1, split_data_2=None):
+        scaler_ls, model = self.load(model_path)
+
+        labels_test_img, features_test_img = split_data_1
+
+        features_test_img_scaled = scaler_ls[0].transform(features_test_img)
+
+        if split_data_2 is not None:
+            labels_test_img_2, features_test_img_2 = split_data_2
+            assert np.array_equal(labels_test_img, labels_test_img_2), "test labels do not match between pipelines"
+
+            features_test_img_scaled_2 = scaler_ls[1].transform(features_test_img_2)
+
+            features_test_img_scaled = np.hstack([features_test_img_scaled, features_test_img_scaled_2])
+
+        labels_test_predict_img = model.predict(features_test_img_scaled)
+        metrics_nums = self.metrics.calc(labels_test_img, labels_test_predict_img)
+
+        #self.voter.set_labels(labels_test_img)
+        self.voter.add_prediction(labels_test_predict_img)
+
+        return metrics_nums
 
     def train(self, split_data_1, split_data_2=None, save_path=None):
         scaler_ls = []
@@ -113,10 +191,6 @@ class DatingClassifier:
         scaler_ls.append(scaler1)
         features_train_img_scaled = scaler1.fit_transform(features_train_img)
         features_val_img_scaled = scaler1.transform(features_val_img)
-
-        # select = SelectKBest(f_classif, k=400)
-        # features_train_img_scaled = select.fit_transform(features_train_img_scaled, labels_train_img)
-        # features_val_img_scaled = select.transform(features_val_img_scaled)
 
         if split_data_2 is not None:
             labels_train_img_2, features_train_img_2, labels_val_img_2, features_val_img_2 = split_data_2
@@ -129,10 +203,6 @@ class DatingClassifier:
             features_train_img_scaled_2 = scaler2.fit_transform(features_train_img_2)
             features_val_img_scaled_2 = scaler2.transform(features_val_img_2)
 
-            # select = SelectKBest(f_classif, k=400)
-            # features_train_img_scaled_2 = select.fit_transform(features_train_img_scaled_2, labels_train_img)
-            # features_val_img_scaled_2 = select.transform(features_val_img_scaled_2)
-
             features_train_img_scaled = np.hstack([features_train_img_scaled, features_train_img_scaled_2])
             features_val_img_scaled = np.hstack([features_val_img_scaled, features_val_img_scaled_2])
 
@@ -140,6 +210,8 @@ class DatingClassifier:
 
         model.fit(features_train_img_scaled, labels_train_img)
         labels_val_predict_img = model.predict(features_val_img_scaled)
+            
+        #labels_val_predict_img, _, _ = self.nn_model(features_train_img_scaled, labels_train_img, features_val_img_scaled, labels_val_img)
 
         metrics_nums = self.metrics.calc(labels_val_img, labels_val_predict_img)
 
@@ -148,7 +220,6 @@ class DatingClassifier:
         if save_path is not None:
             with open(save_path, "wb") as f:
                 pickle.dump((scaler_ls, model), f)
-            self.load(save_path)
 
         return metrics_nums
     

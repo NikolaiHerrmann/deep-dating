@@ -42,7 +42,7 @@ def train_dating_cnn():
 
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=6, dropout=True)
+        model = DatingCNN(model_name=DatingCNN.RESNET50, num_classes=6, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
@@ -71,19 +71,23 @@ def train_autoencoder():
 
 
 def train_classifier():
-    classifier = DatingClassifier()
-
     n_splits = 5
+    dataset_name = DatasetName.MPS
+    run_path = "runs_v2"
 
-    p1_metrics = classifier.cross_val("runs_v2/SCRIBBLE_P1_Crossval", n_splits=n_splits)
-    # p2_metrics = classifier.cross_val("runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
-    # p1p2_metrics = classifier.cross_val("runs_v2/CLAMM_P1_Crossval", dir_2="runs_v2/CLAMM_P2_Crossval", n_splits=n_splits)
+    p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
+    p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
+
+    #p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits)
+    p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=False)
+    #p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits)
+    #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
 
     # pipelines = [p1_metrics, p2_metrics, p1p2_metrics]
     # serialize(pipelines, "runs_v2/graphs/pipeline_results.pkl")
 
 
 if __name__ == "__main__":
-    train_dating_cnn()
+    #train_dating_cnn()
     #train_autoencoder()
-    #train_classifier()
+    train_classifier()
