@@ -9,10 +9,15 @@ from deep_dating.util import SEED
 
 class CrossVal:
 
-    def __init__(self, dataset_name, preprocess_ext="_Set", verbose=True):
+    def __init__(self, dataset_name, test=False, preprocess_ext="_Set", verbose=True):
+        self.test = test
         self.verbose = verbose
         self.preprocess_runner = PreprocessRunner(dataset_name, preprocess_ext)
-        self._read_data()
+        
+        if self.test:
+            self._read_data_test()
+        else:
+            self._read_data()
 
     def _read_image_level_data(self, patch_names, patch_labels):
         self.img_level_patches = {}
@@ -32,6 +37,9 @@ class CrossVal:
 
         if self.verbose:
             print(f"Found {len(self.img_level_patches.keys())} images from all patches.")
+
+    def _read_data_test(self):
+        self.X_test, self.y_test = self.preprocess_runner.read_preprocessing_header(SetType.TEST)
 
     def _read_data(self):
         self.X_train, self.y_train = self.preprocess_runner.read_preprocessing_header(SetType.TRAIN)
@@ -56,8 +64,16 @@ class CrossVal:
             patch_labels += [self.img_level_labels[img_name]] * len(patches)
 
         return np.array(patch_imgs), np.array(patch_labels)
+    
+    def get_test(self):
+        if not self.test:
+            raise Exception("not in test mode.")
+        return self.X_test, self.y_test
 
     def get_split(self, n_splits):
+        if self.test:
+            raise Exception("in test mode.")
+
         if n_splits > 1:
             self.skf = StratifiedKFold(n_splits=n_splits, shuffle=False)
 
@@ -65,9 +81,6 @@ class CrossVal:
             self.y = [self.img_level_labels[key] for key in self.X]
 
             self.X, self.y = shuffle(self.X, self.y, random_state=SEED)
-            # import os
-            # for x in self.X:
-            #     print(os.path.basename(x))
 
             for train_idxs, val_idxs in self.skf.split(self.X, self.y):
                 
@@ -81,5 +94,5 @@ class CrossVal:
                 yield x
 
         else:
-            print("split number cannot be less than 1.")
+            raise Exception("split number cannot be less than 1.")
 

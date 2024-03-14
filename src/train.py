@@ -1,5 +1,6 @@
 
 import os
+import glob
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder, DatingClassifier
 from deep_dating.prediction import DatingPredictor
@@ -25,6 +26,7 @@ def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, spli
 
 def train_dating_cnn():
     dataset = DatasetName.SCRIBBLE
+    num_classes = 6
 
     cross_val = CrossVal(dataset, preprocess_ext="_Set_P2_299")
     trainer = DatingTrainer("P2 Scribble", num_epochs=50, patience=6)
@@ -42,7 +44,7 @@ def train_dating_cnn():
 
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name=DatingCNN.RESNET50, num_classes=6, dropout=True)
+        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
@@ -50,6 +52,37 @@ def train_dating_cnn():
         trainer.train(model, train_loader, val_loader, i)
 
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
+
+
+def test_dating_cnn():
+    dataset_name = DatasetName.MPS
+    pipeline = "P1"
+    num_classes = 11
+    
+    n_split = 5
+    batch_size = 32
+    run_path = "runs_v2"    
+
+    path = os.path.join(run_path, f"{str(dataset_name)}_{pipeline}_Crossval")
+
+    ext = "_Set_P1_Bin_299_Test" if pipeline == "P1" else "_Set_P2_299_Test"
+
+    cross_val = CrossVal(dataset_name, test=True, preprocess_ext=ext)
+    X_test, y_test = cross_val.get_test()
+
+    for i in range(n_split):
+        
+        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=True)
+        model_path = glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt"))[0]
+        model.load(model_path, continue_training=False, use_as_feat_extractor=True)
+
+        test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size)
+
+        predictor = DatingPredictor()
+
+        feat_save_path = model_path.rsplit(".", 1)[0] + f"_feats_{SetType.TEST.value}_split_{i}.pkl"
+            
+        predictor.predict(model, test_loader, save_path=feat_save_path)
 
 
 def train_autoencoder():
@@ -88,6 +121,7 @@ def train_classifier():
 
 
 if __name__ == "__main__":
+    test_dating_cnn()
     #train_dating_cnn()
     #train_autoencoder()
-    train_classifier()
+    #train_classifier()

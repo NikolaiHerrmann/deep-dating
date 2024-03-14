@@ -11,17 +11,17 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-def preprocess_dating_cnn():
-    dataset = ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
+def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
+    dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1) #ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
 
-    dataset.read_from_second_dir(os.path.join(DATASETS_PATH, "SCRIBBLE_Binet"))
+    #dataset.read_from_second_dir(os.path.join(DATASETS_PATH, "SCRIBBLE_Binet"))
 
     splitter = DatasetSplitter(dataset, None, None)
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299", resize=299)
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test", resize=299)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
-    for set_type in [SetType.TRAIN, SetType.VAL]:
+    for set_type in sets:
         X, y = splitter.get_data(set_type)
         if X is not None:
             preprocessor.run(X, y, set_type, preprocessing_func)
@@ -32,7 +32,6 @@ def preprocess_dating_cnn():
 
 def preprocess_dating_cnn_test():
     dataset = CLaMM_Test_Task3()#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
-    exit()
 
     print("Running patch extraction for ", dataset.name, "...")
 
@@ -124,9 +123,11 @@ def run_aug_doc(n=75, test=False):
 if __name__ == "__main__":
     #pass
     #run_aug_doc(test=False)
-    preprocess_pipeline2()
+    #preprocess_pipeline2()
     #preprocess_dating_cnn()
     #preprocess_bin()
+
+    preprocess_dating_cnn(sets=[SetType.TEST])
     
     #test_patch_extraction()
     #run_binarization()
