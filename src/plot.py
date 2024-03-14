@@ -1,5 +1,4 @@
 from deep_dating.summary import *
-from deep_dating.util import read_serialize
 
 
 if __name__ == "__main__":
@@ -10,4 +9,7 @@ if __name__ == "__main__":
     
     #binet_compare()
 
-    binet_synthetic()
+    #binet_synthetic()
+
+    feature_vis = FeatureVis("runs_v2/MPS_P1_Crossval/model_epoch_2_split_3_feats_val_split_3.pkl")
+    feature_vis.tsne()

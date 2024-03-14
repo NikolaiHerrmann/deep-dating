@@ -12,9 +12,9 @@ from tqdm import tqdm
 
 
 def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
-    dataset = MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1) #ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
+    dataset = ScribbleLens() #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1) # #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #MPS(os.path.join(DATASETS_PATH, "MPS_Binet"), dir_depth=1)
 
-    #dataset.read_from_second_dir(os.path.join(DATASETS_PATH, "SCRIBBLE_Binet"))
+    dataset.read_from_second_dir(os.path.join(DATASETS_PATH, "SCRIBBLE_Binet"))
 
     splitter = DatasetSplitter(dataset, None, None)
 
@@ -42,7 +42,7 @@ def preprocess_dating_cnn_test():
 
    
 def preprocess_pipeline2(sets=[SetType.TRAIN, SetType.VAL]):
-    dataset = MPS() #ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+    dataset = ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
 
     preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299_Test")
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     #preprocess_dating_cnn()
     #preprocess_bin()
 
-    #preprocess_dating_cnn(sets=[SetType.TEST])
+    preprocess_dating_cnn(sets=[SetType.TEST])
     preprocess_pipeline2(sets=[SetType.TEST])
     
     #test_patch_extraction()

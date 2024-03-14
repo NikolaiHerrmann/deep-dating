@@ -4,7 +4,6 @@ import glob
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
 from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder, DatingClassifier
 from deep_dating.prediction import DatingPredictor
-from deep_dating.util import serialize
 
 
 def run_dating_cnn_predictions(model, model_path, train_loader, val_loader, split):
@@ -55,9 +54,9 @@ def train_dating_cnn():
 
 
 def test_dating_cnn():
-    dataset_name = DatasetName.MPS
-    pipeline = "P2"
-    num_classes = 11
+    dataset_name = DatasetName.SCRIBBLE
+    pipeline = "P1"
+    num_classes = 6
     
     n_splits = 5
     batch_size = 32
@@ -112,13 +111,9 @@ def train_classifier():
     p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
 
-    #p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits)
     p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=False)
-    #p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits)
+    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=False)
     #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
-
-    # pipelines = [p1_metrics, p2_metrics, p1p2_metrics]
-    # serialize(pipelines, "runs_v2/graphs/pipeline_results.pkl")
 
 
 if __name__ == "__main__":
