@@ -15,5 +15,6 @@ module load SciPy-bundle/2022.05-foss-2022a
 module load scikit-learn/0.24.1-foss-2022a
 module load OpenCV/4.6.0-foss-2022a-contrib
 module load scikit-image/0.19.3-foss-2022a
+module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0
 
 python3 train.py
