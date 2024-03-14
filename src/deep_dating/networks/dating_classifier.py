@@ -177,7 +177,7 @@ class DatingClassifier:
         labels_test_predict_img = model.predict(features_test_img_scaled)
         metrics_nums = self.metrics.calc(labels_test_img, labels_test_predict_img)
 
-        #self.voter.set_labels(labels_test_img)
+        self.voter.set_labels(labels_test_img)
         self.voter.add_prediction(labels_test_predict_img)
 
         return metrics_nums

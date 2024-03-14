@@ -59,7 +59,7 @@ def test_dating_cnn():
     pipeline = "P1"
     num_classes = 11
     
-    n_split = 5
+    n_splits = 5
     batch_size = 32
     run_path = "runs_v2"    
 
@@ -70,10 +70,11 @@ def test_dating_cnn():
     cross_val = CrossVal(dataset_name, test=True, preprocess_ext=ext)
     X_test, y_test = cross_val.get_test()
 
-    for i in range(n_split):
+    for i in range(n_splits):
+        print(f"Running test split: {i+1}/{n_splits}")
         
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=True)
-        model_path = glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt"))[0]
+        model_path = sorted(glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt")), reverse=True)[0]
         model.load(model_path, continue_training=False, use_as_feat_extractor=True)
 
         test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size)
