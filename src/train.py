@@ -77,7 +77,7 @@ def test_dating_cnn():
         model_path = sorted(glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt")), reverse=True)[0]
         model.load(model_path, continue_training=False, use_as_feat_extractor=True)
 
-        test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size)
+        test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size, shuffle=False)
 
         predictor = DatingPredictor()
 
@@ -122,7 +122,7 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    test_dating_cnn()
+    #test_dating_cnn()
     #train_dating_cnn()
     #train_autoencoder()
-    #train_classifier()
+    train_classifier()
