@@ -55,7 +55,7 @@ def train_dating_cnn():
 
 def test_dating_cnn():
     dataset_name = DatasetName.SCRIBBLE
-    pipeline = "P1"
+    pipeline = "P2"
     num_classes = 6
     
     n_splits = 5
@@ -72,7 +72,7 @@ def test_dating_cnn():
     for i in range(n_splits):
         print(f"Running test split: {i+1}/{n_splits}")
         
-        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=True)
+        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=False)
         model_path = sorted(glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt")), reverse=True)[0]
         model.load(model_path, continue_training=False, use_as_feat_extractor=True)
 
