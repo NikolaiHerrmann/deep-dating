@@ -29,6 +29,26 @@ class DatingClassifier:
         self.voter = Voter()
         self.feature_range = (0, 1)
 
+    def _to_latex(self, metrics, std_metrics=None, dec=2):
+        """
+        Make latex table string
+        """
+
+        metrics = np.round(metrics, dec)
+        if std_metrics is not None:
+            std_metrics = np.round(std_metrics, dec)
+        
+        str_ = ""
+        for i in range(len(metrics)):
+            std_str = f" \pm {std_metrics[i]}" if std_metrics is not None else ""
+            str_ += f"${metrics[i]}{std_str}$ & "
+        str_ = str_[:len(str_)-3]
+
+        return str_
+
+        # with open(os.path.join(dir_, "classifier_results.txt"), "w") as f:
+        #     f.write(str_)
+
     def _merge_patches(self, labels, feats, img_names, test_dict=None, read_dict=None):
         preds = {}
 
@@ -103,25 +123,18 @@ class DatingClassifier:
         df = pd.DataFrame(metric_data)
         df.columns = self.metrics.names
 
-        mean_metrics = df.mean(axis=0).round(2)
-        std_metrics = df.std(axis=0).round(2)
-
-        # Make latex table string
-        str_ = ""
-        for i in range(len(mean_metrics)):
-            str_ += f"${mean_metrics[i]} \pm {std_metrics[i]}$ & "
-        str_ = str_[:len(str_)-3]
-
-        # with open(os.path.join(dir_, "classifier_results.txt"), "w") as f:
-        #     f.write(str_)
+        mean_metrics = df.mean(axis=0)
+        std_metrics = df.std(axis=0)
 
         if self.verbose:
             print(df)
             print(mean_metrics.to_frame().T)
-            print(str_)
+            print(self._to_latex(mean_metrics, std_metrics))
 
-        # if not train:
-        #     print(self.voter.predict())
+        if not train:
+            for agg_name, pred_labels in self.voter.predict():
+                metrics_nums = self.metrics.calc(self.voter.get_labels(), pred_labels)
+                print(agg_name, self._to_latex(metrics_nums))
             
         self.voter.reset()
 

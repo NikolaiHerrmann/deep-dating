@@ -56,7 +56,7 @@ def train_dating_cnn():
 
 def test_dating_cnn():
     dataset_name = DatasetName.MPS
-    pipeline = "P1"
+    pipeline = "P2"
     num_classes = 11
     
     n_splits = 5

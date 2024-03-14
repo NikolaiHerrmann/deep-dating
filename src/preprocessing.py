@@ -41,14 +41,14 @@ def preprocess_dating_cnn_test():
     preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
    
-def preprocess_pipeline2():
-    dataset = ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
+def preprocess_pipeline2(sets=[SetType.TRAIN, SetType.VAL]):
+    dataset = MPS() #ScribbleLens() #CLaMM(os.path.join(DATASETS_PATH, "CLaMM_Training_Binet")) #CLaMM(path=os.path.join(DATASETS_PATH, "CLaMM_Training_Clean"))
     splitter = DatasetSplitter(dataset, None, None) #400, test_size=0)
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299")
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299_Test")
     preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
 
-    for set_type in [SetType.TRAIN, SetType.VAL]:
+    for set_type in sets:
         X, y = splitter.get_data(set_type)
         preprocessor.run(X, y, set_type, preprocessor_func)
         print("Image splitting done for", set_type)
@@ -127,7 +127,8 @@ if __name__ == "__main__":
     #preprocess_dating_cnn()
     #preprocess_bin()
 
-    preprocess_dating_cnn(sets=[SetType.TEST])
+    #preprocess_dating_cnn(sets=[SetType.TEST])
+    preprocess_pipeline2(sets=[SetType.TEST])
     
     #test_patch_extraction()
     #run_binarization()
