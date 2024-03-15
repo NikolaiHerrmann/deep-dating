@@ -46,8 +46,8 @@ class ImageSplitter:
 
     def _get_pad_color(self):
         """
-        Find most frequent occurring for padding
-        Idea from https://github.com/arthurflor23/handwritten-text-recognition/blob/master/src/data/preproc.py
+        Find most frequent occurring color for padding
+        Idea adapted from https://github.com/arthurflor23/handwritten-text-recognition/blob/master/src/data/preproc.py
         """
         unique_values, counts = np.unique(self.img, return_counts=True)
         length = len(unique_values)

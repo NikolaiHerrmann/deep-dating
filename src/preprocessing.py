@@ -2,13 +2,13 @@
 import os
 import cv2
 import glob
+from tqdm import tqdm
+from torch.multiprocessing import Pool, set_start_method
 from deep_dating.datasets import SetType, BinDataset, DatasetSplitter, MPS, CLaMM, ScribbleLens, CLaMM_Test_Task3, CLaMM_Test_Task4
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
 from deep_dating.prediction import AutoencoderPredictor
-import matplotlib.pyplot as plt
-from tqdm import tqdm
 
 
 def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
@@ -31,11 +31,11 @@ def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
 
 
 def preprocess_dating_cnn_test():
-    dataset = CLaMM_Test_Task3()#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
+    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
 
     print("Running patch extraction for ", dataset.name, "...")
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test")
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test_Task3", resize=299)
     preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
     preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
@@ -71,8 +71,6 @@ def preprocess_bin():
 
 def run_binarization():
     dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"))
-
-    from torch.multiprocessing import Pool, set_start_method
     
     set_start_method('spawn', force=True)
     
@@ -127,8 +125,10 @@ if __name__ == "__main__":
     #preprocess_dating_cnn()
     #preprocess_bin()
 
-    preprocess_dating_cnn(sets=[SetType.TEST])
-    preprocess_pipeline2(sets=[SetType.TEST])
+    #preprocess_dating_cnn(sets=[SetType.TEST])
+    #preprocess_pipeline2(sets=[SetType.TEST])
+
+    preprocess_dating_cnn_test()
     
     #test_patch_extraction()
     #run_binarization()

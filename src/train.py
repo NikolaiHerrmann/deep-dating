@@ -54,17 +54,18 @@ def train_dating_cnn():
 
 
 def test_dating_cnn():
-    dataset_name = DatasetName.SCRIBBLE
-    pipeline = "P2"
-    num_classes = 6
+    dataset_name = DatasetName.CLAMM
+    pipeline = "P1"
+    num_classes = 15
+    task = "_Task3"
     
     n_splits = 5
     batch_size = 32
-    run_path = "runs_v2"    
+    run_path = "runs_v2"
 
     path = os.path.join(run_path, f"{str(dataset_name)}_{pipeline}_Crossval")
 
-    ext = "_Set_P1_Bin_299_Test" if pipeline == "P1" else "_Set_P2_299_Test"
+    ext = f"_Set_P1_Bin_299_Test{task}" if pipeline == "P1" else f"_Set_P2_299_Test{task}"
 
     cross_val = CrossVal(dataset_name, test=True, preprocess_ext=ext)
     X_test, y_test = cross_val.get_test()
@@ -80,7 +81,7 @@ def test_dating_cnn():
 
         predictor = DatingPredictor()
 
-        feat_save_path = model_path.rsplit(".", 1)[0] + f"_feats_{SetType.TEST.value}_split_{i}.pkl"
+        feat_save_path = model_path.rsplit(".", 1)[0] + f"_feats_{SetType.TEST.value}_split_{i}{task}.pkl"
             
         predictor.predict(model, test_loader, save_path=feat_save_path)
 
@@ -105,14 +106,15 @@ def train_autoencoder():
 
 def train_classifier():
     n_splits = 5
-    dataset_name = DatasetName.MPS
+    dataset_name = DatasetName.SCRIBBLE
+    train = False
     run_path = "runs_v2"
 
     p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
 
-    p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=False)
-    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=False)
+    p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=train)
+    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train)
     #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
 
 
