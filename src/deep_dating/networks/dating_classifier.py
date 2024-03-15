@@ -91,15 +91,15 @@ class DatingClassifier:
 
         return [labels_train_img, features_train_img, labels_val_img, features_val_img], train_dict, val_dict
     
-    def _get_test_split(self, dir_, split_num, read_dict=None):
-        feats_path_test = glob.glob(os.path.join(dir_, f"model*split_{split_num}*test*.pkl"))[0]
+    def _get_test_split(self, dir_, split_num, read_dict=None, task=""):
+        feats_path_test = glob.glob(os.path.join(dir_, f"model*split_{split_num}*test*{task}.pkl"))[0]
         
         labels_test_patch, features_test_patch, img_names_test = self.network_predictor.load(feats_path_test)
         labels_test_img, features_test_img, test_dict = self._merge_patches(labels_test_patch, features_test_patch, img_names_test, read_dict=read_dict)
 
         return [labels_test_img, features_test_img], test_dict
 
-    def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True):
+    def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True, task=""):
         metric_data = []
 
         for i in tqdm(range(n_splits)):
@@ -113,8 +113,8 @@ class DatingClassifier:
 
                 metrics_nums = self.train(split_data_1, split_data_2, save_path=model_path)
             else:
-                split_data_1, _dict = self._get_test_split(dir_1, i)
-                split_data_2 = self._get_test_split(dir_2, i, _dict)[0] if dir_2 is not None else None
+                split_data_1, _dict = self._get_test_split(dir_1, i, task=task)
+                split_data_2 = self._get_test_split(dir_2, i, _dict, task=task)[0] if dir_2 is not None else None
 
                 metrics_nums = self.predict(model_path, split_data_1, split_data_2)
 

@@ -31,14 +31,19 @@ def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
 
 
 def preprocess_dating_cnn_test():
-    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
-
+    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"))#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
+    
     print("Running patch extraction for ", dataset.name, "...")
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test_Task3", resize=299)
-    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
+    # preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test_Task3", resize=299)
+    # preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
-    preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
+    # preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
+
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299_Test_Task3")
+    preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
+
+    preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessor_func)
 
    
 def preprocess_pipeline2(sets=[SetType.TRAIN, SetType.VAL]):

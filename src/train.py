@@ -53,9 +53,18 @@ def train_dating_cnn():
         run_dating_cnn_predictions(model, trainer.best_model_path, train_loader, val_loader, i)
 
 
+def find_best_model(path, split_i):
+    models = glob.glob(os.path.join(path, f"model_epoch_*_split_{split_i}.pt"))
+    epoch_nums = [int(os.path.basename(x).split("epoch_")[1].split("_split")[0]) for x in models]
+
+    _, models = zip(*sorted(zip(epoch_nums, models), reverse=True))
+
+    return models[0]
+
+
 def test_dating_cnn():
     dataset_name = DatasetName.CLAMM
-    pipeline = "P1"
+    pipeline = "P2"
     num_classes = 15
     task = "_Task3"
     
@@ -74,7 +83,7 @@ def test_dating_cnn():
         print(f"Running test split: {i+1}/{n_splits}")
         
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=False)
-        model_path = sorted(glob.glob(os.path.join(path, f"model_epoch_*_split_{i}.pt")), reverse=True)[0]
+        model_path = find_best_model(path, i)
         model.load(model_path, continue_training=False, use_as_feat_extractor=True)
 
         test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size, shuffle=False)
@@ -106,15 +115,16 @@ def train_autoencoder():
 
 def train_classifier():
     n_splits = 5
-    dataset_name = DatasetName.SCRIBBLE
+    dataset_name = DatasetName.CLAMM
     train = False
     run_path = "runs_v2"
+    task = "Task3"
 
     p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
 
-    p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=train)
-    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train)
+    p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=train, task=task)
+    #p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train, task=task)
     #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
 
 
