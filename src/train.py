@@ -63,7 +63,7 @@ def find_best_model(path, split_i):
 
 
 def test_dating_cnn():
-    dataset_name = DatasetName.MPS
+    dataset_name = DatasetName.SCRIBBLE
     pipeline = "P2"
     num_classes = 11
     task = "" #"_Task3"
