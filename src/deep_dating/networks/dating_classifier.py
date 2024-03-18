@@ -198,12 +198,19 @@ class DatingClassifier:
     def train(self, split_data_1, split_data_2=None, save_path=None):
         scaler_ls = []
 
+        from sklearn.decomposition import KernelPCA, PCA
+        from sklearn.feature_selection import f_classif, mutual_info_classif, SelectKBest
+
         labels_train_img, features_train_img, labels_val_img, features_val_img = split_data_1
 
         scaler1 = MinMaxScaler(feature_range=self.feature_range)
         scaler_ls.append(scaler1)
         features_train_img_scaled = scaler1.fit_transform(features_train_img)
         features_val_img_scaled = scaler1.transform(features_val_img)
+
+        # transformer = KernelPCA(n_components=200, random_state=SEED)
+        # features_train_img_scaled = transformer.fit_transform(features_train_img_scaled)
+        # features_val_img_scaled = transformer.transform(features_val_img_scaled)
 
         if split_data_2 is not None:
             labels_train_img_2, features_train_img_2, labels_val_img_2, features_val_img_2 = split_data_2
@@ -215,6 +222,10 @@ class DatingClassifier:
             scaler_ls.append(scaler2)
             features_train_img_scaled_2 = scaler2.fit_transform(features_train_img_2)
             features_val_img_scaled_2 = scaler2.transform(features_val_img_2)
+
+            # transformer = KernelPCA(n_components=100, random_state=SEED)
+            # features_train_img_scaled_2 = transformer.fit_transform(features_train_img_scaled_2)
+            # features_val_img_scaled_2 = transformer.transform(features_val_img_scaled_2)
 
             features_train_img_scaled = np.hstack([features_train_img_scaled, features_train_img_scaled_2])
             features_val_img_scaled = np.hstack([features_val_img_scaled, features_val_img_scaled_2])

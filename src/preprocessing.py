@@ -1,6 +1,6 @@
 
 import os
-import cv2
+import numpy as np
 import glob
 from tqdm import tqdm
 from torch.multiprocessing import Pool, set_start_method
@@ -31,19 +31,19 @@ def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
 
 
 def preprocess_dating_cnn_test():
-    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"))#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
+    dataset = CLaMM_Test_Task4(path=os.path.join(DATASETS_PATH, "CLAMM_task2_task4_Clean_Binet"))#path=os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet"))
     
     print("Running patch extraction for ", dataset.name, "...")
 
-    # preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test_Task3", resize=299)
-    # preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
+    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P1_Bin_299_Test_Task4", resize=299)
+    preprocessing_func = PatchExtractor(plot=False, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, is_binary=True).extract_patches
 
-    # preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
+    preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessing_func)
 
-    preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299_Test_Task3")
-    preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
+    # preprocessor = PreprocessRunner(dataset.name, ext="_Set_P2_299_Test_Task4")
+    # preprocessor_func = ImageSplitter(patch_size=299, force_size=True, plot=False).split
 
-    preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessor_func)
+    # preprocessor.run(dataset.X, dataset.y, SetType.TEST, preprocessor_func)
 
    
 def preprocess_pipeline2(sets=[SetType.TRAIN, SetType.VAL]):
@@ -75,18 +75,34 @@ def preprocess_bin():
 
 
 def run_binarization():
-    dataset = CLaMM_Test_Task3(path=os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean"))
+    dataset = CLaMM_Test_Task4(path=os.path.join(DATASETS_PATH, "CLaMM_task2_task4_Clean"))
     
     set_start_method('spawn', force=True)
     
-    x = dataset.X
-    save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_task1_task3_Clean_Binet")
-    os.makedirs(save_path, exist_ok=False)
+    X = dataset.X
+    save_path = os.path.join(DATASETS_PATH, str(dataset.name) + "_task2_task4_Clean_Binet")
+    #os.makedirs(save_path, exist_ok=False)
+
+    cmp = [os.path.basename(x).rsplit(".", 1)[0] for x in glob.glob(os.path.join(save_path, "*.png"))]
+    print(cmp)
+
+    idxs_rm = []
+
+    for i, x in enumerate(X):
+        x = os.path.basename(x).rsplit(".", 1)[0]
+        if x in cmp:
+            print("Removing", x)
+            idxs_rm.append(i)
+
+    #print(idxs_rm)
+    print(X.shape)
+    X = np.delete(X, idxs_rm)
+    print(X.shape)
     
     predictor = AutoencoderPredictor(normalize_per_img=False, save_path=save_path)
 
-    with Pool(8) as pool:
-        pool.map(predictor.run, x)            
+    with Pool(6) as pool:
+        pool.map(predictor.run, X)            
 
 
 def test_patch_extraction():
@@ -133,12 +149,12 @@ if __name__ == "__main__":
     #preprocess_dating_cnn(sets=[SetType.TEST])
     #preprocess_pipeline2(sets=[SetType.TEST])
 
-    preprocess_dating_cnn_test()
+    #preprocess_dating_cnn_test()
     
     #test_patch_extraction()
     #run_binarization()
 
-    #preprocess_dating_cnn_test()
+    preprocess_dating_cnn_test()
 
 
     # parser = argparse.ArgumentParser()

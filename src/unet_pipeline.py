@@ -1,5 +1,6 @@
 
 import os
+import glob
 import shutil
 import random
 from deep_dating.datasets import MPS, ScribbleLens, CLaMM, CLaMM_Test_Task4, CLaMM_Test_Task3
@@ -11,16 +12,29 @@ from tqdm import tqdm
 def run_through_dataset(dataset):
     X = dataset.X
     random.shuffle(X)
+    random.shuffle(X)
 
-    predictor = AutoencoderPredictor(normalize_per_img=True)
+    predictor = AutoencoderPredictor(normalize_per_img=False, resize_factor=0.35)
 
     for x in X:
         print("Running prediction for:", x)
 
+        x = os.path.join(DATASETS_PATH, "CLaMM_task2_task4_Clean", "CMDF_1_74b.jpg")
         predictor.run(x, plot=True)
 
 
-def run_special_images():
+def run_special_task4():
+    path = os.path.join(DATASETS_PATH, "CLaMM_task2_task4_Clean")
+    imgs = glob.glob(os.path.join(path, "CMDF*"))
+
+    save_path = os.path.join(DATASETS_PATH, "CLAMM_task2_task4_Clean_Binet")
+    predictor = AutoencoderPredictor(normalize_per_img=False, resize_factor=0.35, save_path=save_path)
+
+    for x in tqdm(imgs):
+        predictor.run(x)
+
+
+def run_special_task3():
 
     # (img_name, is_black_text, normalize_per_img)
     imgs = [("M601415401_MS0455_0004.tif", False, False),
@@ -47,49 +61,7 @@ def run_special_images():
         predictor.run(x_raw)
 
 
-def run_extra():
-    arr = ["IRHT_P_005091.tif",
-           "IRHT_P_009793.tif",
-           "M601415401006_MS0018_0006.tif",
-           "M601415401015_MS0018_0015.tif",
-           "M601415401025_MS0018_0026.tif",
-           "M601415401037_MS0018_0038.tif",
-           "M601415401043_MS0018_0045.tif",
-           "M601415401_MS0053_0007.tif",
-           "M601415401_MS0053_0019.tif",
-           "M601415401_MS0053_0025.tif",
-           "M601415401_MS0053_0031.tif",
-           "M601415401_MS0053_0036.tif",
-           "M601415401_MS0053_0042.tif",
-           "M601415401_MS0053_0046.tif",
-           "M601415401_MS0053_0053.tif",
-           "M601415401_MS0053_0060.tif",
-           "M601415401_MS0053_0072.tif",
-           "M601415401_MS0102_0007.tif",
-           "M601415401_MS0102_0010.tif",
-           "M601415401_MS0102_0012.tif",
-           "M601415401_MS0102_0016.tif",
-           "M601415401_MS0102_0020.tif",
-           "M601415401_MS0102_0024.tif",
-           "M601415401_MS0102_0029.tif",
-           "M601415401_MS0102_0039.tif",
-           "M601415401_MS0102_0049.tif",
-           "M601415401_MS0102_0061.tif",
-           "M601415401_MS0102_0068.tif",
-           "M601415401_MS0124_0005.tif",
-           "M601415401_MS0124_0011.tif",
-           "M601415401_MS0124_0023.tif",
-           "M601415401_MS0124_0027.tif"]
-
-    path = os.path.join(DATASETS_PATH, "CLaMM_task1_task3_Clean")
-    save_path = os.path.join(DATASETS_PATH, "CLAMM_task1_task3_Clean_Binet")
-    predictor = AutoencoderPredictor(normalize_per_img=False, save_path=save_path)
-
-    for x in tqdm(arr):
-        x_raw = os.path.join(path, x)
-        predictor.run(x_raw)
-
-
 if __name__ == "__main__":
-    #run_special_images()
-    run_extra()
+    #run_special_task4()
+    #run_extra()
+    run_through_dataset(CLaMM_Test_Task4())
