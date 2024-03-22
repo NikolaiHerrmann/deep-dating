@@ -58,7 +58,7 @@ class DatingPredictor:
                 all_paths += list(paths)
 
         all_labels = np.hstack(all_labels)
-        all_outputs = np.vstack(all_outputs)
+        all_outputs = np.vstack(all_outputs) if model.feature_extractor else np.hstack(all_outputs)
 
         with open(save_path, "wb") as f:
             pickle.dump((all_labels, all_outputs, all_paths), f)
