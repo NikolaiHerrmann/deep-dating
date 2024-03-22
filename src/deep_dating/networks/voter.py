@@ -1,18 +1,15 @@
 
 import numpy as np
-import scipy as sp
+from deep_dating.util import mode
 
 
 class Voter:
     
     def __init__(self):
         self.agg_funcs = [("Median", np.median), 
-                          ("Mode", self._mode),
+                          ("Mode", mode),
                           ("Mean", np.mean)]
         self.reset()
-
-    def _mode(self, x, axis):
-        return sp.stats.mode(x, axis=axis)[0]
 
     def reset(self):
         self.pred_labels = []

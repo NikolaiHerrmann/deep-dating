@@ -15,7 +15,7 @@ from sklearn.preprocessing import MinMaxScaler
 from deep_dating.prediction import DatingPredictor
 from deep_dating.metrics import DatingMetrics
 from deep_dating.preprocessing import PreprocessRunner
-from deep_dating.util import SEED
+from deep_dating.util import SEED, mode
 from deep_dating.networks import Voter
 from tqdm import tqdm
 
@@ -49,7 +49,8 @@ class DatingClassifier:
         # with open(os.path.join(dir_, "classifier_results.txt"), "w") as f:
         #     f.write(str_)
 
-    def _merge_patches(self, labels, feats, img_names, test_dict=None, read_dict=None):
+    def _merge_patches(self, labels, feats_or_preds, img_names, 
+                       agg_func=np.median, axis=None, test_dict=None, read_dict=None):
         preds = {}
 
         labels = labels.flatten()
@@ -61,23 +62,23 @@ class DatingClassifier:
                 assert img_name not in test_dict, "data is leaking!"
 
             if not img_name in preds:
-                preds[img_name] = {"label": labels[i], "feat": [feats[i]]}
+                preds[img_name] = {"label": labels[i], "feat_or_preds": [feats_or_preds[i]]}
             else:
                 assert preds[img_name]["label"] == labels[i] 
-                preds[img_name]["feat"].append(feats[i])
+                preds[img_name]["feat_or_preds"].append(feats_or_preds[i])
 
-        feat_arr = []
+        feat_or_preds_arr = []
         label_arr = []
 
         if read_dict is None:
             read_dict = preds
 
         for key in read_dict.keys():
-            aggregated_feat = np.mean(preds[key]["feat"], axis=0)
-            feat_arr.append(aggregated_feat)
+            aggregated_feat = agg_func(preds[key]["feat_or_preds"], axis=axis)
+            feat_or_preds_arr.append(aggregated_feat)
             label_arr.append(preds[key]["label"])
 
-        return np.array(label_arr), np.array(feat_arr), preds
+        return np.array(label_arr), np.array(feat_or_preds_arr), preds
     
     def _get_train_val_split(self, dir_, split_num, train_read_dict=None, val_read_dict=None):
         feats_path_train = glob.glob(os.path.join(dir_, f"model*split_{split_num}*train*.pkl"))[0]
@@ -91,15 +92,16 @@ class DatingClassifier:
 
         return [labels_train_img, features_train_img, labels_val_img, features_val_img], train_dict, val_dict
     
-    def _get_test_split(self, dir_, split_num, read_dict=None, task=""):
-        feats_path_test = glob.glob(os.path.join(dir_, f"model*split_{split_num}*test*{task}.pkl"))[0]
+    def _get_test_split(self, dir_, split_num, is_feat, read_dict=None, task=""):
+        feats = "feats" if is_feat else "preds"
+        feats_path_test = glob.glob(os.path.join(dir_, f"model*split_{split_num}*{feats}*test*{task}.pkl"))[0]
         
         labels_test_patch, features_test_patch, img_names_test = self.network_predictor.load(feats_path_test)
         labels_test_img, features_test_img, test_dict = self._merge_patches(labels_test_patch, features_test_patch, img_names_test, read_dict=read_dict)
 
         return [labels_test_img, features_test_img], test_dict
-
-    def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True, task=""):
+    
+    def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True, is_feat=True, task=""):
         metric_data = []
 
         for i in tqdm(range(n_splits)):
@@ -113,10 +115,10 @@ class DatingClassifier:
 
                 metrics_nums = self.train(split_data_1, split_data_2, save_path=model_path)
             else:
-                split_data_1, _dict = self._get_test_split(dir_1, i, task=task)
-                split_data_2 = self._get_test_split(dir_2, i, _dict, task=task)[0] if dir_2 is not None else None
+                split_data_1, _dict = self._get_test_split(dir_1, i, is_feat, task=task)
+                split_data_2 = self._get_test_split(dir_2, i, is_feat, _dict, task=task)[0] if dir_2 is not None else None
 
-                metrics_nums = self.predict(model_path, split_data_1, split_data_2)
+                metrics_nums = self.predict(model_path, split_data_1, split_data_2, is_feat)
 
             metric_data.append(metrics_nums)
 
@@ -172,22 +174,27 @@ class DatingClassifier:
 
         return predictions, model, label_encoder
     
-    def predict(self, model_path, split_data_1, split_data_2=None):
-        scaler_ls, model = self.load(model_path)
+    def predict(self, model_path, split_data_1, split_data_2=None, is_feat=True):
 
         labels_test_img, features_test_img = split_data_1
 
-        features_test_img_scaled = scaler_ls[0].transform(features_test_img)
+        if not is_feat:
+            labels_test_predict_img = features_test_img
+        else:
+            scaler_ls, model = self.load(model_path)
 
-        if split_data_2 is not None:
-            labels_test_img_2, features_test_img_2 = split_data_2
-            assert np.array_equal(labels_test_img, labels_test_img_2), "test labels do not match between pipelines"
+            features_test_img_scaled = scaler_ls[0].transform(features_test_img)
 
-            features_test_img_scaled_2 = scaler_ls[1].transform(features_test_img_2)
+            if split_data_2 is not None:
+                labels_test_img_2, features_test_img_2 = split_data_2
+                assert np.array_equal(labels_test_img, labels_test_img_2), "test labels do not match between pipelines"
 
-            features_test_img_scaled = np.hstack([features_test_img_scaled, features_test_img_scaled_2])
+                features_test_img_scaled_2 = scaler_ls[1].transform(features_test_img_2)
 
-        labels_test_predict_img = model.predict(features_test_img_scaled)
+                features_test_img_scaled = np.hstack([features_test_img_scaled, features_test_img_scaled_2])
+
+            labels_test_predict_img = model.predict(features_test_img_scaled)
+        
         metrics_nums = self.metrics.calc(labels_test_img, labels_test_predict_img)
 
         self.voter.set_labels(labels_test_img)

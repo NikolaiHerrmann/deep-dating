@@ -7,6 +7,7 @@ import torch
 import pickle
 import datetime
 import calendar
+import scipy as sp
 import matplotlib.pyplot as plt
 
 
@@ -94,3 +95,7 @@ def read_serialize(path):
 def convert(img_path):
     img = cv2.imread(img_path)
     cv2.imwrite(img_path.rsplit(".", 1)[0] + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
+
+def mode(x, axis):
+    return sp.stats.mode(x, axis=axis)[0]
