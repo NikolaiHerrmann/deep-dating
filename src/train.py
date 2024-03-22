@@ -130,7 +130,7 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    #test_dating_cnn()
+    test_dating_cnn()
     #train_dating_cnn()
     #train_autoencoder()
-    train_classifier()
+    #train_classifier()
