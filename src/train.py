@@ -63,10 +63,10 @@ def find_best_model(path, split_i):
 
 
 def test_dating_cnn():
-    dataset_name = DatasetName.CLAMM
+    dataset_name = DatasetName.SCRIBBLE
     pipeline = "P1"
-    num_classes = 15
-    task = "_Task4"
+    num_classes = 6
+    task = "" #"_Task4"
     
     n_splits = 5
     batch_size = 32
@@ -93,6 +93,7 @@ def test_dating_cnn():
         feat_save_path = model_path.rsplit(".", 1)[0] + f"_feats_{SetType.TEST.value}_split_{i}{task}.pkl"
             
         predictor.predict(model, test_loader, save_path=feat_save_path)
+        break
 
 
 def train_autoencoder():
@@ -115,16 +116,16 @@ def train_autoencoder():
 
 def train_classifier():
     n_splits = 5
-    dataset_name = DatasetName.CLAMM
+    dataset_name = DatasetName.SCRIBBLE
     train = False
     run_path = "runs_v2"
-    task = "Task4"
+    task = "" #"Task4"
 
     p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
 
     p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=train, task=task)
-    #p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train, task=task)
+    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train, task=task)
     #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
 
 

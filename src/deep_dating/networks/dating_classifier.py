@@ -25,7 +25,7 @@ class DatingClassifier:
     def __init__(self, verbose=True):
         self.verbose = verbose
         self.network_predictor = DatingPredictor(verbose=self.verbose)
-        self.metrics = DatingMetrics(alphas=[0, 25, 50], classification=True, average="macro")
+        self.metrics = DatingMetrics(alphas=[0, 25, 50], classification=False, average="macro")
         self.voter = Voter()
         self.feature_range = (0, 1)
 
@@ -127,8 +127,8 @@ class DatingClassifier:
         std_metrics = df.std(axis=0)
 
         if self.verbose:
-            print(df)
-            print(mean_metrics.to_frame().T)
+            print(df.round(2))
+            print(mean_metrics.to_frame().T.round(2))
             print(self._to_latex(mean_metrics, std_metrics))
 
         if not train:

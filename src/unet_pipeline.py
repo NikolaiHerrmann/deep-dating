@@ -14,13 +14,16 @@ def run_through_dataset(dataset):
     random.shuffle(X)
     random.shuffle(X)
 
-    predictor = AutoencoderPredictor(normalize_per_img=False, resize_factor=0.35)
+    predictor = AutoencoderPredictor(normalize_per_img=False, resize_factor=1)
 
     for x in X:
         print("Running prediction for:", x)
 
         x = os.path.join(DATASETS_PATH, "CLaMM_task2_task4_Clean", "CMDF_1_74b.jpg")
-        predictor.run(x, plot=True)
+        x = os.path.join(DATASETS_PATH, "ICDAR2017_CLaMM_Training", "IRHT_P_005976.tif")
+        img = predictor.run(x, plot=True)
+        import cv2
+        cv2.imwrite(os.path.join(DATASETS_PATH, "t.png"), img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
 
 
 def run_special_task4():

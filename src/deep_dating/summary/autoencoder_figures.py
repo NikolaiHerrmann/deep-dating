@@ -3,6 +3,7 @@ import os
 import string
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from tqdm import tqdm
 from deep_dating.util import save_figure, DATASETS_PATH, plt_clear, remove_ticks
 from deep_dating.prediction import AutoencoderPredictor
@@ -64,17 +65,33 @@ def binet_compare():
         img_1 = os.path.join(DATASETS_PATH, img_path)
         
         aug_model = AutoencoderPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_aug_norm/model_epoch_275_split_0.pt")
-        aug_img, gray_img, sauvola_img, otsu_img = aug_model.run(img_1, plot=True, extra_output=True, show=False)
+        aug_img, org_img, gray_img, sauvola_img, otsu_img = aug_model.run(img_1, plot=True, extra_output=True, show=False)
         
-        non_aug_img = AutoencoderPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_norm/model_epoch_329_split_0.pt").run(img_1)
+        #non_aug_img = AutoencoderPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_norm/model_epoch_329_split_0.pt").run(img_1)
 
         if crop:
             start, end = crop
             aug_img_crop = aug_img[:, start:end]
-            non_aug_img_crop = non_aug_img[:, start:end]
+            #non_aug_img_crop = non_aug_img[:, start:end]
             gray_img_crop = gray_img[:, start:end]
             sauvola_img_crop = sauvola_img[:, start:end]
             otsu_img_crop = otsu_img[:, start:end]
+
+            plt_clear()
+            plt.imshow(org_img)
+            plt.title("Original Image", fontsize=7)
+            plt.axis("off")
+            rect = patches.Rectangle((start, 0), end - start, org_img.shape[0], linewidth=1, edgecolor='r', facecolor='none')
+            ax = plt.gca()
+            ax.add_patch(rect)
+            save_figure(f"binet_{dataset_name}_{i}_c_extra", show=False, dpi=300)
+
+            plt_clear()
+            plt.title("BiNet + Synthetic", fontsize=7)
+            plt.imshow(aug_img, cmap="gray")
+            plt.axis("off")
+            save_figure(f"binet_{dataset_name}_{i}_c_full", show=False, dpi=300)
+
             plot(gray_img_crop, aug_img_crop, non_aug_img_crop, sauvola_img_crop, otsu_img_crop, i, True)
 
         plot(gray_img, aug_img, non_aug_img, sauvola_img, otsu_img, i, False)

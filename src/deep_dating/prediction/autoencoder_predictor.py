@@ -99,5 +99,5 @@ class AutoencoderPredictor:
                 print("Saved image")
 
         if extra_output:
-            return img, self.extractor.img, self.extractor.img_bin, self.extractor.img_bin_otsu
+            return img, self.extractor.img_org, self.extractor.img, self.extractor.img_bin, self.extractor.img_bin_otsu
         return img

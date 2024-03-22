@@ -1,5 +1,6 @@
 
 import os
+import cv2
 import random
 import numpy as np
 import torch
@@ -29,13 +30,13 @@ def set_seed():
 set_seed()
 
 
-def save_figure(title, fig=None, fig_dir=FIGURE_PATH, show=False, pdf=True, png=True):
+def save_figure(title, fig=None, fig_dir=FIGURE_PATH, show=False, pdf=True, png=True, dpi=600):
     if not fig:
         fig = plt.gcf()
     if png:
-        fig.savefig(os.path.join(fig_dir, title + ".png"), dpi=600, bbox_inches="tight")
+        fig.savefig(os.path.join(fig_dir, title + ".png"), dpi=dpi, bbox_inches="tight")
     if pdf:
-        fig.savefig(os.path.join(fig_dir, title + ".pdf"), dpi=600, bbox_inches="tight")
+        fig.savefig(os.path.join(fig_dir, title + ".pdf"), dpi=dpi, bbox_inches="tight")
     if show:
         plt.show()
 
@@ -88,3 +89,8 @@ def serialize(obj, path):
 def read_serialize(path):
     with open(path, "rb") as f:
         return pickle.load(f)
+    
+
+def convert(img_path):
+    img = cv2.imread(img_path)
+    cv2.imwrite(img_path.rsplit(".", 1)[0] + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 0])
