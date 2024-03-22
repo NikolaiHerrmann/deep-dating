@@ -63,10 +63,11 @@ def find_best_model(path, split_i):
 
 
 def test_dating_cnn():
-    dataset_name = DatasetName.SCRIBBLE
+    dataset_name = DatasetName.MPS
     pipeline = "P1"
-    num_classes = 6
+    num_classes = 11
     task = "" #"_Task4"
+    get_features = False
     
     n_splits = 5
     batch_size = 32
@@ -84,16 +85,16 @@ def test_dating_cnn():
         
         model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=False)
         model_path = find_best_model(path, i)
-        model.load(model_path, continue_training=False, use_as_feat_extractor=True)
+        model.load(model_path, continue_training=False, use_as_feat_extractor=get_features)
 
         test_loader = DatingDataLoader(dataset_name, X_test, y_test, model, batch_size=batch_size, shuffle=False)
 
         predictor = DatingPredictor()
 
-        feat_save_path = model_path.rsplit(".", 1)[0] + f"_feats_{SetType.TEST.value}_split_{i}{task}.pkl"
+        type_out = "feats" if get_features else "preds"
+        feat_save_path = model_path.rsplit(".", 1)[0] + f"_{type_out}_{SetType.TEST.value}_split_{i}{task}.pkl"
             
         predictor.predict(model, test_loader, save_path=feat_save_path)
-        break
 
 
 def train_autoencoder():

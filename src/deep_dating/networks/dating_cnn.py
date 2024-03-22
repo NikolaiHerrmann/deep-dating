@@ -130,9 +130,11 @@ class DatingCNN(nn.Module):
             if use_as_feat_extractor:
                 self.use_as_feature_extractor()
             else:
-                self.final_activation = nn.Softmax(dim=1)
-                if self.verbose:
-                    print("Changed final activation to softmax")
+                # Only change this if you really need a softmax, log-softmax also still good
+                # self.final_activation = nn.Softmax(dim=1)
+                # if self.verbose:
+                #     print("Changed final activation to softmax")
+                pass
             self.eval()
 
         if self.verbose:
