@@ -10,22 +10,19 @@ from deep_dating.networks import ModelType
 from deep_dating.metrics import DatingMetrics
 
 
-class DatingCNN(nn.Module):
+class PatchCNN(nn.Module):
 
-    RESNET50 = "resnet101"
+    RESNET50 = "resnet50"
     INCEPTION = "inception_resnet_v2"
     EFFICIENTNET_B4 = "tf_efficientnet_b4"
-    INCEPTIONV3 = "inception_v3"
 
-    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 380,
-                        INCEPTIONV3: 299}
+    IMAGE_NET_MODELS = {INCEPTION: 299, RESNET50: 256, EFFICIENTNET_B4: 380}
 
     # For pipeline 2 do: INCEPTION: [("drop", 0.1, True), ("head_drop", 0.2, False)]
 
     MODEL_DROP_OUT = {INCEPTION: [("drop", 0.1, True), ("head_drop", 0.2, False)], 
                       RESNET50: [("drop_block", 0.2, True)],
-                      EFFICIENTNET_B4: [("drop", 0.1, True)],
-                      INCEPTIONV3: [(None, None, None)]}
+                      EFFICIENTNET_B4: [("drop", 0.1, True)]}
 
     def __init__(self, model_name, pretrained=True, input_size=None, 
                  learning_rate=0.001, verbose=True, num_classes=None,
@@ -152,6 +149,6 @@ class DatingCNN(nn.Module):
 
 
 if __name__ == "__main__":
-    model = DatingCNN(model_name=DatingCNN.RESNET50, num_classes=15)
+    model = PatchCNN(model_name=PatchCNN.RESNET50, num_classes=15)
     print(model.base_model)
     model.summary()

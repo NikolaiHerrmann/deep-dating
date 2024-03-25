@@ -4,13 +4,13 @@ import cv2
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from deep_dating.networks import Autoencoder
+from deep_dating.networks import BiNet
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
 from deep_dating.util import plt_clear, get_torch_device
 from torch.utils.data import Dataset, DataLoader
 
 
-class AutoencoderPredictor:
+class BiNetPredictor:
 
     class PatchDataset(Dataset):
 
@@ -32,7 +32,7 @@ class AutoencoderPredictor:
                  detect_black_text=True, resize_factor=1, verbose=True):
         self.verbose = verbose
         self.normalize_per_img = normalize_per_img
-        self.model = Autoencoder(verbose=self.verbose)
+        self.model = BiNet(verbose=self.verbose)
         self.model.load(model_path, continue_training=False)
         self.extractor = PatchExtractor(method=PatchMethod.SLIDING_WINDOW, plot=False, 
                                         detect_black_text=detect_black_text, resize_factor=resize_factor)

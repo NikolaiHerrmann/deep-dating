@@ -8,7 +8,7 @@ from deep_dating.datasets import SetType, BinDataset, DatasetSplitter, MPS, CLaM
 from deep_dating.preprocessing import PatchExtractor, PatchMethod, PreprocessRunner, ImageSplitter
 from deep_dating.augmentation import AugDoc
 from deep_dating.util import DATASETS_PATH
-from deep_dating.prediction import AutoencoderPredictor
+from deep_dating.prediction import BiNetPredictor
 
 
 def preprocess_dating_cnn(sets=[SetType.TRAIN, SetType.VAL]):
@@ -99,7 +99,7 @@ def run_binarization():
     X = np.delete(X, idxs_rm)
     print(X.shape)
     
-    predictor = AutoencoderPredictor(normalize_per_img=False, save_path=save_path)
+    predictor = BiNetPredictor(normalize_per_img=False, save_path=save_path)
 
     with Pool(6) as pool:
         pool.map(predictor.run, X)            
@@ -113,10 +113,11 @@ def test_patch_extraction():
     X = dataset.X
     random.shuffle(X)
 
-    patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, show_lines_in_plot=False)
+    patch_extractor = PatchExtractor(plot=True, method=PatchMethod.SLIDING_WINDOW_LINES, num_lines_per_patch=4, show_lines_in_plot=True)
 
     for x in X:
-        x = os.path.join(DATASETS_PATH, "SCRIBBLE_Binet", "originalpage.page0030.0.png")
+        #x = os.path.join(DATASETS_PATH, "SCRIBBLE_Binet", "originalpage.page0030.0.png")
+        x= os.path.join(DATASETS_PATH, "CLaMM_Training_Clean", "IRHT_P_005976.tif")
         patch_extractor.extract_patches(x)
         patch_extractor.save_plot(show=True)
 
@@ -154,7 +155,9 @@ if __name__ == "__main__":
     #test_patch_extraction()
     #run_binarization()
 
-    preprocess_dating_cnn_test()
+    test_patch_extraction()
+
+    #preprocess_dating_cnn_test()
 
 
     # parser = argparse.ArgumentParser()

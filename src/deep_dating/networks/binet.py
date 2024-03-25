@@ -9,7 +9,7 @@ from deep_dating.networks import ModelType
 from deep_dating.util import get_torch_device
 
 
-class Autoencoder(nn.Module):
+class BiNet(nn.Module):
     """
     Implements BiNet by Dhali, Maruf A., Jan Willem de Wit, and 
     Lambert Schomaker (2019). See paper titled "BiNet: Degraded-manuscript 
@@ -18,7 +18,7 @@ class Autoencoder(nn.Module):
     """
 
     def __init__(self, learning_rate=0.0002, input_size=256, verbose=True):
-        super(Autoencoder, self).__init__()
+        super(BiNet, self).__init__()
         self.learning_rate = learning_rate
         self.model_name = "autoencoder"
         self.model_type = ModelType.AUTOENCODER
@@ -154,6 +154,6 @@ class Autoencoder(nn.Module):
     
 
 if __name__ == "__main__":
-    ac = Autoencoder()
+    ac = BiNet()
     ac.summary()
     

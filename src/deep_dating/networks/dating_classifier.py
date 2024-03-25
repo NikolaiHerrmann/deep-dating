@@ -50,7 +50,7 @@ class DatingClassifier:
         #     f.write(str_)
 
     def _merge_patches(self, labels, feats_or_preds, img_names, 
-                       agg_func=np.median, axis=None, test_dict=None, read_dict=None):
+                       agg_func=np.mean, test_dict=None, read_dict=None):
         preds = {}
 
         labels = labels.flatten()
@@ -74,8 +74,8 @@ class DatingClassifier:
             read_dict = preds
 
         for key in read_dict.keys():
-            aggregated_feat = agg_func(preds[key]["feat_or_preds"], axis=axis)
-            feat_or_preds_arr.append(aggregated_feat)
+            temp_feats_or_preds = agg_func(preds[key]["feat_or_preds"], axis=0)
+            feat_or_preds_arr.append(temp_feats_or_preds)
             label_arr.append(preds[key]["label"])
 
         return np.array(label_arr), np.array(feat_or_preds_arr), preds
@@ -98,7 +98,6 @@ class DatingClassifier:
         
         labels_test_patch, features_test_patch, img_names_test = self.network_predictor.load(feats_path_test)
         labels_test_img, features_test_img, test_dict = self._merge_patches(labels_test_patch, features_test_patch, img_names_test, read_dict=read_dict)
-
         return [labels_test_img, features_test_img], test_dict
     
     def cross_val(self, dir_1, dir_2=None, n_splits=5, train=True, is_feat=True, task=""):
@@ -108,7 +107,7 @@ class DatingClassifier:
 
             is_concat = "_concat" if dir_2 is not None else ""
             model_path = os.path.join(dir_1, f"classifier_model_split_{i}{is_concat}.pkl")
-
+            
             if train:
                 split_data_1, train_dict, val_dict = self._get_train_val_split(dir_1, i)
                 split_data_2 = self._get_train_val_split(dir_2, i, train_dict, val_dict)[0] if dir_2 is not None else None
@@ -117,8 +116,11 @@ class DatingClassifier:
             else:
                 split_data_1, _dict = self._get_test_split(dir_1, i, is_feat, task=task)
                 split_data_2 = self._get_test_split(dir_2, i, is_feat, _dict, task=task)[0] if dir_2 is not None else None
-
-                metrics_nums = self.predict(model_path, split_data_1, split_data_2, is_feat)
+                
+                if not is_feat:
+                    metrics_nums = self.predict_large(split_data_1, _dict)
+                else:
+                    metrics_nums = self.predict(model_path, split_data_1, split_data_2)
 
             metric_data.append(metrics_nums)
 
@@ -137,7 +139,13 @@ class DatingClassifier:
             for agg_name, pred_labels in self.voter.predict():
                 metrics_nums = self.metrics.calc(self.voter.get_labels(), pred_labels)
                 print(agg_name, self._to_latex(metrics_nums))
-            
+
+            print("--------")
+
+            for agg_name, pred_labels in self.voter.predict_dict():
+                metrics_nums = self.metrics.calc(self.voter.get_labels(), pred_labels)
+                print(agg_name, self._to_latex(metrics_nums))
+
         self.voter.reset()
 
         return mean_metrics, std_metrics
@@ -174,26 +182,34 @@ class DatingClassifier:
 
         return predictions, model, label_encoder
     
-    def predict(self, model_path, split_data_1, split_data_2=None, is_feat=True):
+    def predict_large(self, split_data_1, dict_):
+        labels_test_img, features_test_img = split_data_1
+        
+        metrics_nums = self.metrics.calc(labels_test_img, features_test_img)
+
+        self.voter.set_labels(labels_test_img)
+        self.voter.add_prediction(features_test_img)
+        self.voter.add_prediction_dict(dict_)
+
+        return metrics_nums
+    
+    def predict(self, model_path, split_data_1, split_data_2=None):
 
         labels_test_img, features_test_img = split_data_1
 
-        if not is_feat:
-            labels_test_predict_img = features_test_img
-        else:
-            scaler_ls, model = self.load(model_path)
+        scaler_ls, model = self.load(model_path)
 
-            features_test_img_scaled = scaler_ls[0].transform(features_test_img)
+        features_test_img_scaled = scaler_ls[0].transform(features_test_img)
 
-            if split_data_2 is not None:
-                labels_test_img_2, features_test_img_2 = split_data_2
-                assert np.array_equal(labels_test_img, labels_test_img_2), "test labels do not match between pipelines"
+        if split_data_2 is not None:
+            labels_test_img_2, features_test_img_2 = split_data_2
+            assert np.array_equal(labels_test_img, labels_test_img_2), "test labels do not match between pipelines"
 
-                features_test_img_scaled_2 = scaler_ls[1].transform(features_test_img_2)
+            features_test_img_scaled_2 = scaler_ls[1].transform(features_test_img_2)
 
-                features_test_img_scaled = np.hstack([features_test_img_scaled, features_test_img_scaled_2])
+            features_test_img_scaled = np.hstack([features_test_img_scaled, features_test_img_scaled_2])
 
-            labels_test_predict_img = model.predict(features_test_img_scaled)
+        labels_test_predict_img = model.predict(features_test_img_scaled)
         
         metrics_nums = self.metrics.calc(labels_test_img, labels_test_predict_img)
 
@@ -207,6 +223,7 @@ class DatingClassifier:
 
         from sklearn.decomposition import KernelPCA, PCA
         from sklearn.feature_selection import f_classif, mutual_info_classif, SelectKBest
+        from sklearn.svm import SVR
 
         labels_train_img, features_train_img, labels_val_img, features_val_img = split_data_1
 

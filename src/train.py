@@ -2,7 +2,7 @@
 import os
 import glob
 from deep_dating.datasets import DatasetName, DatingDataLoader, SetType, CrossVal
-from deep_dating.networks import DatingCNN, DatingTrainer, Autoencoder, DatingClassifier
+from deep_dating.networks import PatchCNN, DatingTrainer, BiNet, DatingClassifier
 from deep_dating.prediction import DatingPredictor
 
 
@@ -43,7 +43,7 @@ def train_dating_cnn():
 
         print(f" -- Running split: {i+1}/{n_splits} -- ")
 
-        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=True)
+        model = PatchCNN(model_name=PatchCNN.INCEPTION, num_classes=num_classes, dropout=True)
         
         train_loader = DatingDataLoader(dataset, X_train, y_train, model, batch_size=batch_size)
         val_loader = DatingDataLoader(dataset, X_val, y_val, model, batch_size=batch_size)
@@ -64,7 +64,7 @@ def find_best_model(path, split_i):
 
 def test_dating_cnn(t):
     dataset_name = DatasetName.CLAMM
-    pipeline = "P1"
+    pipeline = "P2"
     num_classes = 15
     task = t
     get_features = False
@@ -83,7 +83,7 @@ def test_dating_cnn(t):
     for i in range(n_splits):
         print(f"Running test split: {i+1}/{n_splits}")
         
-        model = DatingCNN(model_name=DatingCNN.INCEPTION, num_classes=num_classes, dropout=False)
+        model = PatchCNN(model_name=PatchCNN.INCEPTION, num_classes=num_classes, dropout=False)
         model_path = find_best_model(path, i)
         model.load(model_path, continue_training=False, use_as_feat_extractor=get_features)
 
@@ -107,7 +107,7 @@ def train_autoencoder():
     (X_train, y_train, X_val, y_val) = next(cross_val.get_split(n_splits=1))
     (X_train_gt, y_train_gt, X_val_gt, y_val_gt) = next(cross_val_gt.get_split(n_splits=1))      
 
-    model = Autoencoder()
+    model = BiNet()
 
     train_loader = DatingDataLoader(dataset, X_train, X_train_gt, model)
     val_loader = DatingDataLoader(dataset, X_val, X_val_gt, model)
@@ -120,8 +120,8 @@ def train_classifier():
     dataset_name = DatasetName.MPS
     train = False
     run_path = "runs_v2"
-    is_feat = False
-    task = "" #"Task4"
+    is_feat = True
+    task = "" #"_Task3"
 
     p1_path = os.path.join(run_path, f"{str(dataset_name)}_P1_Crossval")
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
@@ -132,8 +132,8 @@ def train_classifier():
 
 
 if __name__ == "__main__":
-    test_dating_cnn("_Task3")
-    test_dating_cnn("_Task4")
+    #test_dating_cnn("_Task3")
+    #test_dating_cnn("_Task4")
     #train_dating_cnn()
     #train_autoencoder()
-    #train_classifier()
+    train_classifier()

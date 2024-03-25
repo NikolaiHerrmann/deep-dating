@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 import matplotlib.patheffects as pe
 from matplotlib import cm, colors
-from deep_dating.networks import DatingCNN
+from deep_dating.networks import PatchCNN
 from deep_dating.preprocessing import PatchExtractor, PatchMethod
 from deep_dating.datasets import MPS, ScribbleLens, CLaMM, DatasetSplitter, SetType
 from deep_dating.util import save_figure, plt_clear, to_index
@@ -121,7 +121,7 @@ def make_map(patch_extractor, patches, model):
 def run_patch_pipeline(img_path, agg_func=np.median, true_label=None, plot=True, make_saliency_map=True):
 
     model_path = "runs/Feb2-12-2-23/model_epoch_5.pt" #"runs/Jan8-19-25-16/model_epoch_3.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" #"runs/Jan6-22-21-16/model_epoch_28.pt" #"runs/Jan9-13-59-8/model_epoch_29.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt" # # #"runs/Jan8-19-25-16/model_epoch_3.pt"# #
-    model = DatingCNN("inception_resnet_v2", verbose=False, num_classes=6)
+    model = PatchCNN("inception_resnet_v2", verbose=False, num_classes=6)
     model.load(model_path, continue_training=False)
     
     patch_extractor = PatchExtractor(plot=plot, method=PatchMethod.SLIDING_WINDOW_LINES)

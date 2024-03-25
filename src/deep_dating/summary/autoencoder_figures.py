@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from tqdm import tqdm
 from deep_dating.util import save_figure, DATASETS_PATH, plt_clear, remove_ticks
-from deep_dating.prediction import AutoencoderPredictor
+from deep_dating.prediction import BiNetPredictor
 from deep_dating.augmentation import AugDoc
 
 
@@ -64,7 +64,7 @@ def binet_compare():
     for i, (img_path, dataset_name, normalize, crop) in tqdm(enumerate(img_ls), total=len(img_ls)):
         img_1 = os.path.join(DATASETS_PATH, img_path)
         
-        aug_model = AutoencoderPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_aug_norm/model_epoch_275_split_0.pt")
+        aug_model = BiNetPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_aug_norm/model_epoch_275_split_0.pt")
         aug_img, org_img, gray_img, sauvola_img, otsu_img = aug_model.run(img_1, plot=True, extra_output=True, show=False)
         
         #non_aug_img = AutoencoderPredictor(normalize_per_img=normalize, model_path="runs_v2/Binet_norm/model_epoch_329_split_0.pt").run(img_1)
