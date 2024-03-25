@@ -127,7 +127,7 @@ def train_classifier():
     p2_path = os.path.join(run_path, f"{str(dataset_name)}_P2_Crossval")
 
     p1_metrics = DatingClassifier().cross_val(p1_path, n_splits=n_splits, train=train, task=task, is_feat=is_feat)
-    #p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train, task=task, is_feat=is_feat)
+    p2_metrics = DatingClassifier().cross_val(p2_path, n_splits=n_splits, train=train, task=task, is_feat=is_feat)
     #p1p2_metrics = DatingClassifier().cross_val(p1_path, dir_2=p2_path, n_splits=n_splits)
 
 
